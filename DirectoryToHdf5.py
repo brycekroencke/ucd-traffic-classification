@@ -49,10 +49,10 @@ def getFiles():
     superFileNum = 0
     prevIDs = []
     f = h5.File('trafficData.hdf5','w')
-    os.chdir("/Users/brycekroencke/Documents/TrafficClassification/files/")
+    os.chdir("/Users/scifa/Documents/ai_research/files/")
     for directories in os.listdir(os.getcwd()):
         if not directories.startswith('.'):
-            dir = os.path.join('/Users/brycekroencke/Documents/TrafficClassification/files/', directories)
+            dir = os.path.join('/Users/scifa/Documents/ai_research/files/', directories)
             os.chdir(dir)
             for idx, subdirectories in enumerate(os.listdir(os.getcwd())):
                 if not subdirectories.startswith('.'):

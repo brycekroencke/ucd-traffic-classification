@@ -14,7 +14,7 @@ from keras.layers.convolutional import Conv1D, MaxPooling1D
 from keras.optimizers import SGD
 from keras.models import Sequential
 from sklearn.metrics import confusion_matrix
-from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activation
+from keras.layers import Dense, Flatten, TimeDistributed, LSTM, GlobalAveragePooling1D, Dropout, Activation
 from keras.utils import to_categorical
 from keras.utils import np_utils
 from random import shuffle
@@ -111,7 +111,7 @@ def main():
     #Initial shuffle of data
     dataList, intLabelList = sklearn.utils.shuffle(dataList, intLabelList, random_state = 0)
 
-    #Break data into trainging and test
+    #Break data into training and test
     x_train = []
     x_test = []
     y_train = []
@@ -137,15 +137,16 @@ def main():
     #Making the 1D CNN model
     activation = 'relu'
     model = Sequential()
-    model.add(Conv1D(512, strides=2, input_shape=x_train.shape[1:], activation=activation, kernel_size=4, padding='same'))
-    model.add(MaxPooling1D(data_format='channels_first'))
-    model.add(Conv1D(256, strides=1, activation=activation, kernel_size=2, padding='same'))
-    model.add(MaxPooling1D(data_format='channels_first'))
-    model.add(Flatten())
-    model.add(Dense(128, activation=activation))
-    model.add(Dense(128, activation=activation))
-    model.add(Dense(32, activation=activation))
-    model.add(Dense(32, activation=activation))
+    model.add(TimeDistributed(Conv1D(512, strides=2, input_shape=x_train.shape[1:], activation=activation, kernel_size=4, padding='same')))
+    model.add(TimeDistributed(MaxPooling1D(data_format='channels_first')))
+    model.add(TimeDistributed(Conv1D(256, strides=1, activation=activation, kernel_size=2, padding='same')))
+    model.add(TimeDistributed(MaxPooling1D(data_format='channels_first')))
+    model.add(TimeDistributed(Flatten()))
+    model.add(TimeDistributed(Dense(128, activation=activation)))
+    model.add(TimeDistributed(Dense(128, activation=activation)))
+    model.add(TimeDistributed(Dense(32, activation=activation)))
+    model.add(TimeDistributed(Dense(32, activation=activation)))
+    model.add(LSTM(20, return_sequences=False, name="lstm_layer"))
     model.add(Dense(numOfClasses, activation='softmax'))
     print(model.summary())
     opt = keras.optimizers.Adam(lr=0.004)

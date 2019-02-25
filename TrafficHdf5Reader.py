@@ -38,7 +38,7 @@ def visitor_func(name, node):
         filename = splitName[4]
 
 
-with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData.hdf5', 'r') as f:
+with h5.File('/Users/scifa/Documents/ucd-traffic-classification/trafficData.hdf5', 'r') as f:
     #f.visititems(visitor_func)
     Subclasses = ['HTTP', 'GoogleEarth', 'GoogleMap', 'Google_Common', 'Google+', 'GoogleSearch', 'GoogleAnalytics', 'TCPConnect', 'HTTPS', 'WebMail_Gmail', 'Hangouts', 'GooglePlay', 'YouTube', 'GoogleMusic', 'GoogleAdsense']
     Classes = ['GoogleEarth', 'GoogleMap', 'Google+', 'WebMail_Gmail', 'Hangouts', 'GooglePlay', 'YouTube', 'GoogleMusic']
