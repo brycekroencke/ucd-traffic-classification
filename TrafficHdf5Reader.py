@@ -16,8 +16,14 @@ from pandas import read_csv, DataFrame
 from collections import Counter
 
 nNumArr = []
+cArr = []
+dArr = []
+sArr = []
 def visitor_func(name, node):
     global nNumArr
+    global cArr
+    global dArr
+    global sArr
     if isinstance(node, h5.Dataset):
         splitName = (node.name).split("/")
         cls = splitName[1]
@@ -31,6 +37,10 @@ def visitor_func(name, node):
         if nodeType == "superNum":
             sNum = node.value
             nNumArr.append(sNum)
+            cArr.append(cls)
+            dArr.append(dev)
+            sArr.append(sbCls)
+
             #print(sNum)
 
     else:
@@ -108,3 +118,28 @@ print(sevPer, t70, "\n")
 print(eigPer, t80, "\n")
 print(ninPer, t90, "\n")
 print(hunPer, t100, "\n")
+
+
+
+for j, (train_idx, val_idx) in enumerate(folds):
+
+    print('\nFold ',j)
+    X_train_cv = X_train[train_idx]
+    y_train_cv = y_train[train_idx]
+    X_valid_cv = X_train[val_idx]
+    y_valid_cv= y_train[val_idx]
+
+    name_weights = "final_model_fold" + str(j) + "_weights.h5"
+    callbacks = get_callbacks(name_weights = name_weights, patience_lr=10)
+    generator = gen.flow(X_train_cv, y_train_cv, batch_size = batch_size)
+    model = get_model()
+    model.fit_generator(
+                generator,
+                steps_per_epoch=len(X_train_cv)/batch_size,
+                epochs=15,
+                shuffle=True,
+                verbose=1,
+                validation_data = (X_valid_cv, y_valid_cv),
+                callbacks = callbacks)
+
+    print(model.evaluate(X_valid_cv, y_valid_cv))

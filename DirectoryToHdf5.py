@@ -32,11 +32,11 @@ def gNum(type):
     Takes a string of network packet data and converts bytes of hex data into normalized floats. Returns a list of floats for each string of bytes.
 """
 def pad_and_convert(hexStr):
-    if len(hexStr) < 100:
-        hexStr += '00' * (100-len(hexStr))
+    if len(hexStr) < 128:
+        hexStr += '00' * (128-len(hexStr))
     else:
-        hexStr = hexStr[:100]
-    return [float(int(hexStr[i]+hexStr[i+1], 16)/255) for i in range(0, 100, 2)]
+        hexStr = hexStr[:254]
+    return [float(int(hexStr[i]+hexStr[i+1], 16)/128) for i in range(0, 128, 2)]
 
 
 """
@@ -48,6 +48,7 @@ def getFiles():
     #text_file.write("----- --------------- --------------- --------------------------------------------------"+"\n")
     superFileNum = 0
     prevIDs = []
+    os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
     f = h5.File('trafficData.hdf5','w')
     os.chdir("/Users/brycekroencke/Documents/TrafficClassification/files/")
     for directories in os.listdir(os.getcwd()):
@@ -80,7 +81,7 @@ def getFiles():
 
                                     for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
                                         #text_file.write('{:9}'.format(str(i))+" "+'{:15}'.format(fileClass)+" "+'{:19}'.format(fileSubclass)+" "+'{:50}'.format(fileUniqueID)+"\n")
-                                        print('{:9}'.format(str(i))+" "+'{:15}'.format(fileClass)+" "+'{:19}'.format(fileSubclass)+" "+'{:50}'.format(fileUniqueID)+"\n")
+                                        #print('{:9}'.format(str(i))+" "+'{:15}'.format(fileClass)+" "+'{:19}'.format(fileSubclass)+" "+'{:50}'.format(fileUniqueID)+"\n")
                                         superFileNum = i
                                     #if directories == fileSubclass:
                                     okSubclasses = ['HTTP', 'GoogleEarth', 'GoogleMap', 'Google_Common', 'Google+', 'GoogleSearch', 'GoogleAnalytics', 'TCPConnect', 'HTTPS', 'WebMail_Gmail', 'Hangouts', 'GooglePlay', 'YouTube', 'GoogleMusic', 'GoogleAdsense']
@@ -88,13 +89,25 @@ def getFiles():
                                         count = 0
                                         pktStr = ""
                                         totalPktStr = ""
-                                        for line in csv.reader(tsv, dialect="excel-tab"):
-                                            if count < 6:
+                                        numOfPacksRead = 0
+                                        for idx2, line in enumerate(csv.reader(tsv, dialect="excel-tab")):
+                                            if count <= 4:
                                                 count = count + 1
                                                 pktStr = line[3]
-                                                pktArr.append(pad_and_convert(pktStr[0:100]))
+                                                pktArr.append(pad_and_convert(pktStr[0:128]))
+                                                numOfPacksRead = idx2
+                                        #print("\n\n"+str(count)+"\n\n")
+                                        print(numOfPacksRead)
+                                        if numOfPacksRead < 4:
+                                            print("here")
+                                            morePkts = 4-numOfPacksRead
+                                            for i in range(morePkts):
+                                                print("****")
+                                                pktArr.append(pad_and_convert(""))
+                                        flat_list = [item for sublist in pktArr for item in sublist]
+                                        print(len(flat_list))
                                         fileGrp = f.create_group(directories+"/"+deviceType+"/"+fileSubclass+"/"+str(filename))
-                                        fileDset = fileGrp.create_dataset("pkts", data=pktArr)
+                                        fileDset = fileGrp.create_dataset("pkts", data=flat_list)
                                         fileSuperNum = fileGrp.create_dataset("superNum", data=superFileNum)
                                         #print(pktArr)
 
