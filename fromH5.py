@@ -33,7 +33,7 @@ pd.set_option('display.max_colwidth', -1)  # or 199
 #Network hyperparameters
 num_classes = 14
 epochs = 10
-learningRate = .01
+learningRate = .005
 batch_size = 64
 
 """
@@ -89,19 +89,20 @@ Defines the 1D DCNN model
 def get_model():
     activation = 'relu'
     model = Sequential()
-    model.add(Conv1D(256, strides=2, input_shape=X_train_cv.shape[1:], activation=activation, kernel_size=4, padding='same'))
+    model.add(Conv1D(256, strides=2, input_shape=X_train_cv.shape[1:], activation=activation, kernel_size=2))
     model.add(MaxPooling1D())
-    model.add(Conv1D(128, strides=1, activation=activation, kernel_size=2, padding='same'))
+    model.add(Conv1D(128, strides=1, activation=activation, kernel_size=2))
     model.add(MaxPooling1D())
     model.add(Flatten())
-    model.add(Dense(32, activation=activation))
-    model.add(Dense(32, activation=activation))
+    model.add(Dense(64, activation=activation))
+    model.add(Dense(64, activation=activation))
     model.add(Dense(num_classes, activation=activation))
-    model.add(Dense(num_classes, activation='softmax'))
+    model.add(Dense(num_classes, activation='sigmoid'))
 
-    opt = keras.optimizers.Adam(lr=learningRate)
-    model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
+    opt = keras.optimizers.Adam(lr=learningRate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    model.compile(loss='mean_squared_error', optimizer=opt, metrics=['accuracy'])
     return model
+
 
 
 def get_callbacks(name_weights, patience_lr):
@@ -206,8 +207,8 @@ for j in range(10):
     print(pd.crosstab(y_valid_cv.argmax(axis=1), y_pred.argmax(axis=1), rownames=['True'], colnames=['Predicted'], margins=True))
     print("\n\n")
     print(pd.crosstab(y_valid_cv.argmax(axis=1), y_pred.argmax(axis=1), rownames=['True'], colnames=['Predicted'], margins=True, normalize = 'columns', dropna = False))
-    actList.append(y_valid_cv.argmax(axis = 1))
-    predList.append(y_pred.argmax(axis = 1))
+    actList.append(y_valid_cv)
+    predList.append(y_pred)
     print(predList)
     print(actList)
 
@@ -220,4 +221,6 @@ cross validation.
 predList = np.concatenate(predList, axis=0 )
 actList = np.concatenate(actList, axis=0 )
 print(predList)
-print(pd.crosstab(actList, predList, rownames=['True'], colnames=['Predicted'], margins=True, normalize = 'columns', dropna = False))
+print(pd.crosstab(actList.argmax(axis = 1), predList.argmax(axis = 1), rownames=['True'], colnames=['Predicted'], margins=True))
+print("\n\n")
+print(pd.crosstab(actList.argmax(axis = 1), predList.argmax(axis = 1), rownames=['True'], colnames=['Predicted'], margins=True, normalize = 'columns', dropna = False))
