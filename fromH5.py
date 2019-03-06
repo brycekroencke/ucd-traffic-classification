@@ -91,7 +91,7 @@ def get_model():
     model = Sequential()
     model.add(Conv1D(256, strides=1, input_shape=X_train_cv.shape[1:], activation=activation, kernel_size=2))
     model.add(MaxPooling1D())
-    model.add(Conv1D(256, strides=1, activation=activation, kernel_size=2))
+    model.add(Conv1D(128, strides=1, activation=activation, kernel_size=2))
     model.add(MaxPooling1D())
     model.add(Flatten())
     model.add(Dense(64, activation=activation))
