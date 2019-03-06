@@ -97,7 +97,7 @@ def get_model():
     model.add(Dense(64, activation=activation))
     model.add(Dense(64, activation=activation))
     model.add(Dense(num_classes, activation=activation))
-    model.add(Dense(num_classes, activation='sigmoid'))
+    model.add(Dense(num_classes, activation='softmax'))
 
     opt = keras.optimizers.Adam(lr=learningRate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     model.compile(loss='mean_squared_error', optimizer=opt, metrics=['accuracy'])
