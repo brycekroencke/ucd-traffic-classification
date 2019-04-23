@@ -32,9 +32,9 @@ pd.set_option('display.max_colwidth', -1)  # or 199
 
 #Network hyperparameters
 num_classes = 14
-epochs = 10
-learningRate = .005
-batch_size = 64
+epochs = 15
+learningRate = .005  #.005
+batch_size = 64    #64
 
 """
 Switch uses to determine if the network should be trained on all data, or only data where
@@ -51,8 +51,8 @@ nNumArr = []
 Loads datasets from the hdf5 file that were generated from toH5.py
 """
 def load_data_kfold():
-    X_train, y_train, allClass = [], [], []
-    with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData.hdf5', 'r') as f:
+    X_train, y_train, allClass, total = [], [], [], []
+    with h5.File('trafficData4.hdf5', 'r') as f:
         if num_classes == 14:
             for i in range(10):
                 X_train.append(f[str(i)+"data"][:])
@@ -78,7 +78,7 @@ def load_data_kfold():
             y_train = ytemp1
 
         np.set_printoptions(threshold=np.nan)
-        print(y_train)
+        print(X_train[0:3])
 
     return X_train, y_train
 
@@ -89,15 +89,15 @@ Defines the 1D DCNN model
 def get_model():
     activation = 'relu'
     model = Sequential()
-    model.add(Conv1D(256, strides=1, input_shape=X_train_cv.shape[1:], activation=activation, kernel_size=2))
+    model.add(Conv1D(256, strides=1, input_shape=X_train_cv.shape[1:], activation=activation, kernel_size=2, name = "con1"))
     model.add(MaxPooling1D())
-    model.add(Conv1D(128, strides=1, activation=activation, kernel_size=2))
+    model.add(Conv1D(128, strides=1, activation=activation, kernel_size=2,name = "con2"))
     model.add(MaxPooling1D())
     model.add(Flatten())
-    model.add(Dense(64, activation=activation))
-    model.add(Dense(64, activation=activation))
-    model.add(Dense(num_classes, activation=activation))
-    model.add(Dense(num_classes, activation='softmax'))
+    model.add(Dense(64, activation=activation,name = "den1"))
+    model.add(Dense(64, activation=activation,name = "den2"))
+    model.add(Dense(num_classes, activation=activation,name = "den3"))
+    model.add(Dense(num_classes, activation='softmax',name = "den4"))
 
     opt = keras.optimizers.Adam(lr=learningRate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     model.compile(loss='mean_squared_error', optimizer=opt, metrics=['accuracy'])
@@ -188,15 +188,19 @@ for j in range(10):
 
 
     print(X_train_cv.shape)
-    name_weights = "final_model_fold" + str(j) + "_weights.h5"
+    name_weights = "final_model_fold" + str(j) + "_weightsIGNORE.h5"
     callbacks = get_callbacks(name_weights = name_weights, patience_lr=10)
 
     """
     Training of the model.
     """
     model = get_model()
+    model.load_weights("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/ucd-traffic-classification/final_model_fold0_weights.h5")
+    model.save_weights('my_model_weights.h5')
+    '''
     model.fit(X_train_cv, y_train_cv, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid_cv, y_valid_cv), shuffle = True, callbacks = callbacks)
     print(model.evaluate(X_valid_cv, y_valid_cv))
+    '''
 
     """
     Generates a confusion matrix for each fold of training. Helps understand networks predictive
