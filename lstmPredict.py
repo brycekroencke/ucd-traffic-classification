@@ -68,6 +68,7 @@ for i in range(29992):
 
 #print(totalSf)
 sfDic = Counter(totalSf)
+print(sfDic)
 okaySfs = []
 sfDicTrimmed = dict((k, v) for k, v in sfDic.items() if v >= sfCutOff)
 for k, v in sfDicTrimmed.items():

@@ -87,13 +87,12 @@ def load_data():
         y_train = []
         for j in list(set(okaySfs)):
             X_train_sub = []
-            y_train_sub = []
             count = 1
             for i in sortedSF:
                 if i[0] == j and count < sfCutOff:
                     count = count + 1
                     X_train_sub.append(i[5:])
-                    y_train_sub.append(i[3])
+                    y_train_sub = i[3]
             X_train.append(X_train_sub)
             y_train.append(y_train_sub)
         y_train = np.array(y_train)
@@ -131,7 +130,7 @@ def get_model():
     model.add(TimeDistributed(Flatten()))
     model.add(Dropout(0.5))
     #WE WANT TO HAVE RETURN SEQUENCES = FALSE SO THAT THE RETURN VALUE IS A SINGLE VALUE
-    model.add(LSTM(50, return_sequences=True, name = "lstm_layer", dropout=0.5))
+    model.add(LSTM(50, return_sequences=False, name = "lstm_layer", dropout=0.5))
     model.add(Dense(50))
     model.add(Dense(num_classes))
     model.add(Activation('sigmoid'))
