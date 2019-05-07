@@ -18,7 +18,7 @@ from keras.models import Sequential, Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.utils import np_utils
 from keras.layers.convolutional import Conv1D, MaxPooling1D
-from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activation, TimeDistributed, LSTM
+from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activation, TimeDistributed, LSTM, Input
 from keras.utils import to_categorical
 from random import shuffle
 from collections import Counter
@@ -35,8 +35,8 @@ pd.set_option('display.max_colwidth', -1)  # or 199
 
 #Network hyperparameters
 epochs = 4
-learningRate = .0005
-batch_size = 7
+learningRate = .0001
+batch_size = 10
 num_classes = 7
 
 
@@ -62,7 +62,7 @@ def load_data():
             okaySfs.append(k)
 
         print(len(set(okaySfs)))
-        np.set_printoptions(threshold=np.nan)
+        #np.set_printoptions(threshold=np.nan)
 
         #TRIM THE SUPERFILES THAT ARE UNDER THE SF CUTOFF NUMBER
         overCutoff = []
@@ -121,20 +121,48 @@ def load_data():
 Defines the 1D DCNN model using TimeDistributed
 """
 def get_model():
+    # Headline input: meant to receive sequences of 100 integers, between 1 and 10000.
+    # Note that we can name any layer by passing it a "name" argument.
     activation = 'relu'
-    model = Sequential()
-    model.add(TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, input_shape=X_train.shape[1:], name = "con1")))
-    model.add(TimeDistributed(MaxPooling1D()))
-    model.add(TimeDistributed(Conv1D(128,(2), strides=1, activation=activation, name = "con2")))
-    model.add(TimeDistributed(MaxPooling1D()))
-    model.add(TimeDistributed(Flatten()))
-    model.add(Dropout(0.5))
-    #WE WANT TO HAVE RETURN SEQUENCES = FALSE SO THAT THE RETURN VALUE IS A SINGLE VALUE
-    model.add(LSTM(50, return_sequences=False, name = "lstm_layer", dropout=0.5))
-    model.add(Dense(50))
-    model.add(Dense(num_classes))
-    model.add(Activation('sigmoid'))
-    model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+    main_input = Input(shape = X_train.shape, name='main_input')
+    x = TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, name = "con1"))(main_input)
+    x = TimeDistributed(MaxPooling1D())(x)
+    x = TimeDistributed(Conv1D(128,(2), strides=1, activation=activation, name = "con2"))(x)
+    x = TimeDistributed(MaxPooling1D())(x)
+    x = TimeDistributed(Dense(14))(x)
+    x = TimeDistributed(Flatten())(x)
+    print("flatten done")
+    x = TimeDistributed(Dense(num_classes))(x)
+    print("dense done")
+    cnn_out = TimeDistributed(Dense(1, name='cnn_out'))(x)
+    print("cnn out done")
+    auxiliary_input = Input(shape = time_data.shape[1:], name='aux_input')
+    print("aux in done")
+    x = keras.layers.concatenate([cnn_out, auxiliary_input])
+    print("concat done")
+        # model.add(TimeDistributed(Dense(num_classes)))
+    # A LSTM will transform the vector sequence into a single vector,
+    # containing information about the entire sequence
+    x = LSTM(50, return_sequences=False, dropout=0.5)(x)
+    print("lstm done")
+    main_output = Dense(num_classes, activation = 'sigmoid', name='main_output')(x)
+    print("main out done")
+    # activation = 'relu'
+    # model = Sequential(inputs=[main_in, time_in], outputs=[main_out, dense_out])
+    # model.add(TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, input_shape=X_train.shape[1:], name = "con1")))
+    # model.add(TimeDistributed(MaxPooling1D()))
+    # model.add(TimeDistributed(Conv1D(128,(2), strides=1, activation=activation, name = "con2")))
+    # model.add(TimeDistributed(MaxPooling1D()))
+    # #model.add(TimeDistributed(Dense(14)))
+    # model.add(TimeDistributed(Flatten()))
+    # model.add(TimeDistributed(Dense(num_classes)))
+    # model.add(TimeDistributed(Dense(num_classes)))
+    # model.add(Dropout(0.5))
+    # model.add(keras.layers.concatenate([dense_out, time_in]))
+    # model.add(LSTM(50, return_sequences=False, name = "lstm_layer", dropout=0.5))
+    # model.add(Dense(num_classes, activation = 'sigmoid', name='main_out'))
+    # model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+    model = Model(inputs=[main_input, auxiliary_input], outputs=[main_output, cnn_out])
     return model
 
 
@@ -164,14 +192,15 @@ def gNum(type):
 
 
 X_train, y_train, X_valid, y_valid = load_data()
-
+time_data = np.ones((587, 9, 1), dtype=int)
 model = get_model()
 model.load_weights('my_model_weights.h5', by_name=True)
-model.fit(X_train, y_train, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid, y_valid), shuffle = True)
+model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+#model.fit(X_train, y_train, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid, y_valid), shuffle = True)
+model.fit([X_train, time_data], [y_train, y_train], epochs=epochs, batch_size=batch_size, verbose = 1)
 print(model.summary())
 #y_pred = model.predict(X_valid)
 #y_pred = (y_pred > .5)
 benchmark_model_name = 'benchmark-model.h5'
 model.save(benchmark_model_name)
-
 print(model.evaluate(X_valid, y_valid))
