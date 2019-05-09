@@ -124,7 +124,7 @@ def get_model():
     # Headline input: meant to receive sequences of 100 integers, between 1 and 10000.
     # Note that we can name any layer by passing it a "name" argument.
     activation = 'relu'
-    main_input = Input(shape = X_train.shape, name='main_input')
+    main_input = Input(shape = X_train.shape[1:], name='main_input')
     x = TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, name = "con1"))(main_input)
     x = TimeDistributed(MaxPooling1D())(x)
     x = TimeDistributed(Conv1D(128,(2), strides=1, activation=activation, name = "con2"))(x)
