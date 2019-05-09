@@ -131,15 +131,10 @@ def get_model():
     x = TimeDistributed(MaxPooling1D())(x)
     x = TimeDistributed(Dense(14))(x)
     x = TimeDistributed(Flatten())(x)
-    print("flatten done")
     x = TimeDistributed(Dense(num_classes))(x)
-    print("dense done")
     cnn_out = TimeDistributed(Dense(1, name='cnn_out'))(x)
-    print("cnn out done")
     auxiliary_input = Input(shape = time_data.shape[1:], name='aux_input')
-    print("aux in done")
     x = keras.layers.concatenate([cnn_out, auxiliary_input])
-    print("concat done")
         # model.add(TimeDistributed(Dense(num_classes)))
     # A LSTM will transform the vector sequence into a single vector,
     # containing information about the entire sequence
