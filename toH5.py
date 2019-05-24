@@ -9,6 +9,7 @@ import csv
 from pandas import read_csv, DataFrame
 import random
 random.seed( 3 ) # for reproducibility
+from collections import Counter
 
 """
     Edit these to alter the number of packets and bytes pulled from each file.
@@ -55,6 +56,21 @@ def pad_and_convert(hexStr):
     else:
         hexStr = hexStr[:numOfBytes]
     return [float(int(hexStr[i]+hexStr[i+1], 16)/256) for i in range(0, numOfBytes, 2)]
+
+
+"""
+Sorts a matrix by a given element
+"""
+def Sort(sub_li, el):
+    l = len(sub_li)
+    for i in range(0, l):
+        for j in range(0, l-i-1):
+            if (sub_li[j][el] > sub_li[j + 1][el]):
+                tempo = sub_li[j]
+                sub_li[j]= sub_li[j + 1]
+                sub_li[j + 1]= tempo
+    return sub_li
+
 
 
 """
@@ -193,9 +209,6 @@ metaList = []
 clabelList, sclabelList = [], []
 dataList = []
 
-print(dataTuple[0])
-print(dataTuple[1])
-print(dataTuple[2])
 
 for i in range(len(dataTuple)):
     metaList.append(dataTuple[i][0:4])
@@ -205,6 +218,129 @@ for i in range(len(dataTuple)):
 
 for i in range(14):
     print(gClass(i),sclabelList.count(i))
+
+
+
+sfCutOff = 10 #number of timestamps per TimeDistribution
+
+
+#FIND TOTAL NUMBER OF SUPERFILES AND CONSTRUCT A DICT
+totalSf = []
+for i in range(29992):
+    totalSf.append(int(dataTuple[i][0]))
+sfDic = Counter(totalSf)
+okaySfs = []
+sfDicTrimmed = dict((k, v) for k, v in sfDic.items() if v >= sfCutOff)
+for k, v in sfDicTrimmed.items():
+    okaySfs.append(k)
+
+print(len(set(okaySfs)))
+#np.set_printoptions(threshold=np.nan)
+
+#TRIM THE SUPERFILES THAT ARE UNDER THE SF CUTOFF NUMBER
+overCutoff = []
+for i in range(29992):
+    if dataTuple[i][0] in okaySfs:
+         overCutoff.append(dataTuple[i])
+
+#SORT THE FILES THAT ARE OVER THE SF CUTOFF NUMBER BY START TIME WHILE
+#GROUPING BY SF NUMBER
+sortedSF = Sort(overCutoff, 0)
+end = 0
+start = 0
+for j in list(set(okaySfs)):
+    for i in range(len(sortedSF)):
+        if sortedSF[i][0] == j:
+            end = end + 1
+    sortedSF[start:end] = Sort(sortedSF[start:end], 1)
+    start = end
+
+print("-------------------------")
+print("-------------------------")
+print("-------------------------")
+#make list from 0 to total # of files in superfile - the size of the batch.
+#if size of this list is less than or equal to the sizeOfbatch use all indexes in the list
+#else pick a random number from the list and add the sequence from that index to to index + batch size
+#remove index from list when done
+batchList = []
+X_train = []
+y_train = []
+time = []
+
+batchesPerSf = 5
+sizeOfbatch = 5
+end = 0
+start = 0
+for i in list(set(okaySfs)):
+    for m in range(len(sortedSF)):
+        if sortedSF[m][0] == i:
+            end = end + 1
+    #print(sfDicTrimmed[i])
+    listOfIds = list(range(0, sfDicTrimmed[i]-sizeOfbatch))
+    print(len(listOfIds))
+    if len(listOfIds) <= batchesPerSf:
+        for j in listOfIds:
+            #add sequence j to j + sizeOfbatch into array
+            X_train_sub = []
+            for x in range(sizeOfbatch):
+                X_train_sub.append(dataTuple[j+x+start][5:])
+                y_train_sub = dataTuple[j+x+start][3]
+                time_sub = dataTuple[j+x+start][0]
+            X_train.append(X_train_sub)
+            y_train.append(y_train_sub)
+            time.append(time_sub)
+
+            #print(str(j+start)+" -> "+str(j+sizeOfbatch+start))
+    else:
+        for j in range(batchesPerSf):
+            randomIndx = random.choice(listOfIds)
+            X_train_sub = []
+            for x in range(sizeOfbatch):
+                X_train_sub.append(dataTuple[randomIndx+x+start][5:])
+                y_train_sub = dataTuple[randomIndx+x+start][3]
+                time_sub = dataTuple[randomIndx+x+start][0]
+
+            # print(str(randomIndx+start)+" -> "+str(randomIndx+sizeOfbatch+start))
+            listOfIds.remove(randomIndx)
+            X_train.append(X_train_sub)
+            y_train.append(y_train_sub)
+            time.append(time_sub)
+    start = end
+
+
+print("-------------------------")
+print("-------------------------")
+print("-------------------------")
+
+
+
+# #ADD EACH SF SEQUENCE TO THE TRAINING DATASET
+# X_train = []
+# y_train = []
+# for j in list(set(okaySfs)):
+#     X_train_sub = []
+#     count = 1
+#     for i in sortedSF:
+#         if i[0] == j and count < sfCutOff:
+#             count = count + 1
+#             X_train_sub.append(i[5:])
+#             y_train_sub = i[3]
+#     X_train.append(X_train_sub)
+#     y_train.append(y_train_sub)
+y_train = np.array(y_train)
+X_train = np.array(X_train)
+time = np.array(time)
+print(X_train.shape)
+print(y_train.shape)
+print(time.shape)
+
+os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
+f = h5.File('trafficData5.hdf5','w')
+f.create_dataset("X_train", data=X_train)
+f.create_dataset("y_train", data=y_train)
+f.create_dataset("time", data=time)
+f.close()
+
 
 #
 # """

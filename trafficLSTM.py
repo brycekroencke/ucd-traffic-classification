@@ -135,7 +135,7 @@ def get_model():
     cnn_out = TimeDistributed(Dense(1, name='cnn_out'))(x)
     auxiliary_input = Input(shape = time_data.shape[1:], name='aux_input')
     x = keras.layers.concatenate([cnn_out, auxiliary_input])
-        # model.add(TimeDistributed(Dense(num_classes)))
+    # model.add(TimeDistributed(Dense(num_classes)))
     # A LSTM will transform the vector sequence into a single vector,
     # containing information about the entire sequence
     x = LSTM(50, return_sequences=False, dropout=0.5)(x)
