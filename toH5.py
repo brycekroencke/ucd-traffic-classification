@@ -251,7 +251,7 @@ start = 0
 for j in list(set(okaySfs)):
     for i in range(len(sortedSF)):
         if sortedSF[i][0] == j:
-            end = end + 1
+            end = end + 1 
     sortedSF[start:end] = Sort(sortedSF[start:end], 1)
     start = end
 

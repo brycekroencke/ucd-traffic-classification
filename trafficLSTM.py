@@ -42,79 +42,79 @@ num_classes = 7
 
 sfCutOff = 10 #number of timestamps per TimeDistribution
 
-"""
-Loads datasets from the hdf5 file that were generated from toH5.py and does preprocessing on the data
-"""
-def load_data():
-    with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData3.hdf5', 'r') as f:
-        dataTuple = f["wholeData"][:]
-        metadata = f["metadata"][:]
-
-
-        #FIND TOTAL NUMBER OF SUPERFILES AND CONSTRUCT A DICT
-        totalSf = []
-        for i in range(29992):
-            totalSf.append(int(dataTuple[i][0]))
-        sfDic = Counter(totalSf)
-        okaySfs = []
-        sfDicTrimmed = dict((k, v) for k, v in sfDic.items() if v >= sfCutOff)
-        for k, v in sfDicTrimmed.items():
-            okaySfs.append(k)
-
-        print(len(set(okaySfs)))
-        #np.set_printoptions(threshold=np.nan)
-
-        #TRIM THE SUPERFILES THAT ARE UNDER THE SF CUTOFF NUMBER
-        overCutoff = []
-        for i in range(29992):
-            if dataTuple[i][0] in okaySfs:
-                 overCutoff.append(dataTuple[i])
-
-        #SORT THE FILES THAT ARE OVER THE SF CUTOFF NUMBER BY START TIME WHILE
-        #GROUPING BY SF NUMBER
-        sortedSF = Sort(overCutoff, 0)
-        end = 0
-        start = 0
-        for j in list(set(okaySfs)):
-            for i in range(len(sortedSF)):
-                if sortedSF[i][0] == j:
-                    end = end + 1
-            sortedSF[start:end] = Sort(sortedSF[start:end], 1)
-            start = end
-
-        #ADD EACH SF SEQUENCE TO THE TRAINING DATASET
-        X_train = []
-        y_train = []
-        for j in list(set(okaySfs)):
-            X_train_sub = []
-            count = 1
-            for i in sortedSF:
-                if i[0] == j and count < sfCutOff:
-                    count = count + 1
-                    X_train_sub.append(i[5:])
-                    y_train_sub = i[3]
-            X_train.append(X_train_sub)
-            y_train.append(y_train_sub)
-        y_train = np.array(y_train)
-        X_train = np.array(X_train)
-        print(X_train.shape)
-        print(y_train.shape)
-
-        #FORMAT DATA FOR TIME DISTRIBUTED CNN INPUT
-        X_train, y_train = sklearn.utils.shuffle(X_train, y_train, random_state = 0)
-        X_valid = X_train[:50]
-        y_valid = y_train[:50]
-        X_train = X_train[50:]
-        y_train = y_train[50:]
-        X_train = np.array(X_train)
-        X_valid = np.array(X_valid)
-        y_train = np.array(y_train)
-        y_valid = np.array(y_valid)
-        y_train = np_utils.to_categorical(y_train, num_classes)
-        y_valid = np_utils.to_categorical(y_valid, num_classes)
-        X_train = np.expand_dims(X_train, axis=3)
-        X_valid = np.expand_dims(X_valid, axis=3)
-    return X_train, y_train, X_valid, y_valid
+# """
+# Loads datasets from the hdf5 file that were generated from toH5.py and does preprocessing on the data
+# """
+# def load_data():
+#     with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData3.hdf5', 'r') as f:
+#         dataTuple = f["wholeData"][:]
+#         metadata = f["metadata"][:]
+#
+#
+#         #FIND TOTAL NUMBER OF SUPERFILES AND CONSTRUCT A DICT
+#         totalSf = []
+#         for i in range(29992):
+#             totalSf.append(int(dataTuple[i][0]))
+#         sfDic = Counter(totalSf)
+#         okaySfs = []
+#         sfDicTrimmed = dict((k, v) for k, v in sfDic.items() if v >= sfCutOff)
+#         for k, v in sfDicTrimmed.items():
+#             okaySfs.append(k)
+#
+#         print(len(set(okaySfs)))
+#         #np.set_printoptions(threshold=np.nan)
+#
+#         #TRIM THE SUPERFILES THAT ARE UNDER THE SF CUTOFF NUMBER
+#         overCutoff = []
+#         for i in range(29992):
+#             if dataTuple[i][0] in okaySfs:
+#                  overCutoff.append(dataTuple[i])
+#
+#         #SORT THE FILES THAT ARE OVER THE SF CUTOFF NUMBER BY START TIME WHILE
+#         #GROUPING BY SF NUMBER
+#         sortedSF = Sort(overCutoff, 0)
+#         end = 0
+#         start = 0
+#         for j in list(set(okaySfs)):
+#             for i in range(len(sortedSF)):
+#                 if sortedSF[i][0] == j:
+#                     end = end + 1
+#             sortedSF[start:end] = Sort(sortedSF[start:end], 1)
+#             start = end
+#
+#         #ADD EACH SF SEQUENCE TO THE TRAINING DATASET
+#         X_train = []
+#         y_train = []
+#         for j in list(set(okaySfs)):
+#             X_train_sub = []
+#             count = 1
+#             for i in sortedSF:
+#                 if i[0] == j and count < sfCutOff:
+#                     count = count + 1
+#                     X_train_sub.append(i[5:])
+#                     y_train_sub = i[3]
+#             X_train.append(X_train_sub)
+#             y_train.append(y_train_sub)
+#         y_train = np.array(y_train)
+#         X_train = np.array(X_train)
+#         print(X_train.shape)
+#         print(y_train.shape)
+#
+#         #FORMAT DATA FOR TIME DISTRIBUTED CNN INPUT
+#         X_train, y_train = sklearn.utils.shuffle(X_train, y_train, random_state = 0)
+#         X_valid = X_train[:50]
+#         y_valid = y_train[:50]
+#         X_train = X_train[50:]
+#         y_train = y_train[50:]
+#         X_train = np.array(X_train)
+#         X_valid = np.array(X_valid)
+#         y_train = np.array(y_train)
+#         y_valid = np.array(y_valid)
+#         y_train = np_utils.to_categorical(y_train, num_classes)
+#         y_valid = np_utils.to_categorical(y_valid, num_classes)
+#         X_train = np.expand_dims(X_train, axis=3)
+#         X_valid = np.expand_dims(X_valid, axis=3)
+#     return X_train, y_train, X_valid, y_valid
 
 
 """
@@ -185,14 +185,35 @@ def gNum(type):
 
 
 
+with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData5.hdf5', 'r') as f:
+    X_train = f["X_train"][:]
+    y_train = f["y_train"][:]
+    time_data = f["time"][:]
 
-X_train, y_train, X_valid, y_valid = load_data()
-time_data = np.ones((587, 9, 1), dtype=int)
+X_train, y_train = sklearn.utils.shuffle(X_train, y_train, random_state = 0)
+X_valid = X_train[:50]
+y_valid = y_train[:50]
+X_train = X_train[50:]
+y_train = y_train[50:]
+time_train = time_data[:50]
+time_valid = time_data[50:]
+X_train = np.array(X_train)
+X_valid = np.array(X_valid)
+y_train = np.array(y_train)
+y_valid = np.array(y_valid)
+y_train = np_utils.to_categorical(y_train, num_classes)
+y_valid = np_utils.to_categorical(y_valid, num_classes)
+X_train = np.expand_dims(X_train, axis=3)
+X_valid = np.expand_dims(X_valid, axis=3)
+time_train = np.expand_dims(time_train, axis=3)
+time_valid = np.expand_dims(time_valid, axis=3)
+print(X_train.shape)
+print(time_train.shape)
 model = get_model()
 model.load_weights('my_model_weights.h5', by_name=True)
 model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
 #model.fit(X_train, y_train, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid, y_valid), shuffle = True)
-model.fit([X_train, time_data], [y_train, y_train], epochs=epochs, batch_size=batch_size, verbose = 1)
+model.fit([X_train, time_train], [y_train, y_train], epochs=epochs, batch_size=batch_size, verbose = 1)
 print(model.summary())
 #y_pred = model.predict(X_valid)
 #y_pred = (y_pred > .5)
