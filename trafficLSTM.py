@@ -121,8 +121,6 @@ sfCutOff = 10 #number of timestamps per TimeDistribution
 Defines the 1D DCNN model using TimeDistributed
 """
 def get_model():
-    # Headline input: meant to receive sequences of 100 integers, between 1 and 10000.
-    # Note that we can name any layer by passing it a "name" argument.
     activation = 'relu'
     main_input = Input(shape = X_train.shape[1:], name='main_input')
     x = TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, name = "con1"))(main_input)
@@ -135,28 +133,12 @@ def get_model():
     cnn_out = TimeDistributed(Dense(1, name='cnn_out'))(x)
     auxiliary_input = Input(shape = time_train.shape[1:], name='aux_input')
     x = keras.layers.concatenate([cnn_out, auxiliary_input])
-    # model.add(TimeDistributed(Dense(num_classes)))
     # A LSTM will transform the vector sequence into a single vector,
     # containing information about the entire sequence
     x = LSTM(50, return_sequences=False, dropout=0.5)(x)
     print("lstm done")
     main_output = Dense(num_classes, activation = 'sigmoid', name='main_output')(x)
     print("main out done")
-    # activation = 'relu'
-    # model = Sequential(inputs=[main_in, time_in], outputs=[main_out, dense_out])
-    # model.add(TimeDistributed(Conv1D(256, (2), padding='same',  strides=1, input_shape=X_train.shape[1:], name = "con1")))
-    # model.add(TimeDistributed(MaxPooling1D()))
-    # model.add(TimeDistributed(Conv1D(128,(2), strides=1, activation=activation, name = "con2")))
-    # model.add(TimeDistributed(MaxPooling1D()))
-    # #model.add(TimeDistributed(Dense(14)))
-    # model.add(TimeDistributed(Flatten()))
-    # model.add(TimeDistributed(Dense(num_classes)))
-    # model.add(TimeDistributed(Dense(num_classes)))
-    # model.add(Dropout(0.5))
-    # model.add(keras.layers.concatenate([dense_out, time_in]))
-    # model.add(LSTM(50, return_sequences=False, name = "lstm_layer", dropout=0.5))
-    # model.add(Dense(num_classes, activation = 'sigmoid', name='main_out'))
-    # model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
     model = Model(inputs=[main_input, auxiliary_input], outputs=[main_output, cnn_out])
     return model
 
@@ -213,11 +195,8 @@ print(time_train[0:3])
 model = get_model()
 model.load_weights('my_model_weights.h5', by_name=True)
 model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
-#model.fit(X_train, y_train, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid, y_valid), shuffle = True)
 model.fit([X_train, time_train], [y_train, y_train], epochs=epochs, batch_size=batch_size, verbose = 1)
 print(model.summary())
-#y_pred = model.predict(X_valid)
-#y_pred = (y_pred > .5)
 benchmark_model_name = 'benchmark-model.h5'
 model.save(benchmark_model_name)
 print(model.evaluate(X_valid, y_valid))

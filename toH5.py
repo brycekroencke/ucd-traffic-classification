@@ -19,9 +19,23 @@ numOfPackets = 6 #Number of strings of network data used for each dataset
 numOfBytes = 256  #Number of bytes used from each string of network data
 pktThreshold = 8
 
+"""
+    Pathways to change various parts of the dataset
+"""
+
+#Pathway to inside of directory containing the raw network data
+network_files_pathway = "/Users/brycekroencke/Documents/TrafficClassification/files/"
+#Pathway to the directory in which the new h5 file is to be stored
+directory_for_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files"
+#Name of newly created hdf5 file
+name_of_h5 = "trafficData5.hdf5"
 
 
+"""
+    Other globals
+"""
 
+#Global list used to create dataset
 dataTuple = []
 
 """
@@ -81,10 +95,10 @@ def Sort(sub_li, el):
 def getFiles():
     superFileNum = 0
     prevIDs = []
-    os.chdir("/Users/brycekroencke/Documents/TrafficClassification/files/")
+    os.chdir(network_files_pathway)
     for directories in os.listdir(os.getcwd()):
         if not directories.startswith('.') and directories != "Google+":
-            dir = os.path.join('/Users/brycekroencke/Documents/TrafficClassification/files/', directories)
+            dir = os.path.join(network_files_pathway, directories)
             os.chdir(dir)
             for idx, subdirectories in enumerate(os.listdir(os.getcwd())):
                 if not subdirectories.startswith('.') and subdirectories != "Google+":
@@ -131,8 +145,6 @@ def getFiles():
                                             for i in range(morePkts):
                                                 pktArr.append(pad_and_convert(""))
 
-                                        # print(line[3][0:10], pktArr[1:10])
-                                        # print("++++++++++++++")
                                         if maxPacks >= pktThreshold:
                                             if fileUniqueID not in prevIDs:
                                                 prevIDs.append(fileUniqueID)
@@ -142,7 +154,6 @@ def getFiles():
                                             newList = [superFileNum, startTime, gDev(deviceType), gNum(directories), gNum(fileSubclass)]
                                             newList.extend(flat_list)
                                             dataTuple.append(newList)
-                                            #print(flat_list[0:5])
 
 
 
@@ -198,26 +209,26 @@ for i in range(numOfSf):
         time[1] = (float(time[1]) - float(startTime))
 
 
-"""
-Seperated the larger data matrix into smaller matricies.
-Metadata contains: time, class, subclass
-sclabelList contains: subclass
-clabelList contains: class
-dataList contains: packet data
-"""
-metaList = []
-clabelList, sclabelList = [], []
-dataList = []
-
-
-for i in range(len(dataTuple)):
-    metaList.append(dataTuple[i][0:4])
-    sclabelList.append(dataTuple[i][4])
-    clabelList.append(dataTuple[i][3])
-    dataList.append(dataTuple[i][5:])
-
-for i in range(14):
-    print(gClass(i),sclabelList.count(i))
+# """
+# Seperated the larger data matrix into smaller matricies.
+# Metadata contains: time, class, subclass
+# sclabelList contains: subclass
+# clabelList contains: class
+# dataList contains: packet data
+# """
+# metaList = []
+# clabelList, sclabelList = [], []
+# dataList = []
+#
+#
+# for i in range(len(dataTuple)):
+#     metaList.append(dataTuple[i][0:4])
+#     sclabelList.append(dataTuple[i][4])
+#     clabelList.append(dataTuple[i][3])
+#     dataList.append(dataTuple[i][5:])
+#
+# for i in range(14):
+#     print(gClass(i),sclabelList.count(i))
 
 
 
@@ -337,8 +348,8 @@ print(X_train.shape)
 print(y_train.shape)
 print(time.shape)
 
-os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
-f = h5.File('trafficData5.hdf5','w')
+os.chdir(directory_for_h5)
+f = h5.File(name_of_h5,'w')
 f.create_dataset("X_train", data=X_train)
 f.create_dataset("y_train", data=y_train)
 f.create_dataset("time", data=time)
