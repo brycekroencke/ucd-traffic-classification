@@ -123,7 +123,7 @@ def run_with_time():
     benchmark_model_name = 'benchmark-model.h5'
     model.save(benchmark_model_name)
     print(model.evaluate([X_valid, time_valid], [y_valid, y_valid]))
-    y_pred = classifier.predict([X_valid, time_valid])
+    y_pred = model.predict([X_valid, time_valid])
     y_pred = (y_pred > 0.5)
     cm = confusion_matrix(y_valid, y_pred)
     print(cm)
@@ -137,7 +137,7 @@ def run_without_time():
     benchmark_model_name = 'benchmark-model.h5'
     model.save(benchmark_model_name)
     print(model.evaluate(X_valid, y_valid))
-    y_pred = classifier.predict(X_valid)
+    y_pred = model.predict(X_valid)
     y_pred = (y_pred > 0.5)
     cm = confusion_matrix(y_valid, y_pred)
     print(cm)
