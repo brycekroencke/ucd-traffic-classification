@@ -28,7 +28,8 @@ network_files_pathway = "/Users/brycekroencke/Documents/TrafficClassification/fi
 #Pathway to the directory in which the new h5 file is to be stored
 directory_for_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files"
 #Name of newly created hdf5 file
-name_of_h5 = "trafficData_lstm.hdf5"
+name_of_lstm_h5 = "trafficData_lstm.hdf5"
+name_of_cnn_h5 = "trafficData_cnn.hdf5"
 
 
 """
@@ -364,17 +365,16 @@ print(y_train.shape)
 print(time.shape)
 
 os.chdir(directory_for_h5)
-f = h5.File(name_of_h5,'w')
+f = h5.File(name_of_lstm_h5,'w')
 f.create_dataset("X_train", data=X_train)
 f.create_dataset("y_train", data=y_train)
 f.create_dataset("y_train_sub_class", data=y_train_sc)
 f.create_dataset("time", data=time)
 f.close()
+ 
 
 
-
-os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
-f = h5.File('trafficData_cnn.hdf5','w')
+f = h5.File(name_of_cnn_h5,'w')
 f.create_dataset("X_train", data=dataList)
 f.create_dataset("y_train", data=clabelList)
 f.create_dataset("y_train_sc", data=sclabelList)
