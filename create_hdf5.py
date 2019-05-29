@@ -306,13 +306,27 @@ for i in list(set(okaySfs)):
             #print(str(j+start)+" -> "+str(j+sizeOfbatch+start))
     else:
         for j in range(batchesPerSf):
-            randomIndx = random.choice(listOfIds)
-            X_train_sub = []
-            time_sub = []
-            for x in range(sizeOfbatch):
-                X_train_sub.append(sortedSF[randomIndx+x+start][5:])
-                y_train_sub = sortedSF[randomIndx+x+start][3]
-                time_sub.append(sortedSF[randomIndx+x+start][1])
+            for i in range(5):
+                #add sequence j to j + sizeOfbatch into array
+                X_train_sub = []
+                time_sub = []
+                for x in range(sizeOfbatch):
+                    X_train_sub.append(sortedSF[i+x+start][5:])
+                    y_train_sub = sortedSF[i+x+start][3]
+                    time_sub.append(sortedSF[i+x+start][1])
+                X_train.append(X_train_sub)
+                y_train.append(y_train_sub)
+                time.append(time_sub)
+
+
+
+            # randomIndx = random.choice(listOfIds)
+            # X_train_sub = []
+            # time_sub = []
+            # for x in range(sizeOfbatch):
+            #     X_train_sub.append(sortedSF[randomIndx+x+start][5:])
+            #     y_train_sub = sortedSF[randomIndx+x+start][3]
+            #     time_sub.append(sortedSF[randomIndx+x+start][1])
 
             # print(str(randomIndx+start)+" -> "+str(randomIndx+sizeOfbatch+start))
             listOfIds.remove(randomIndx)

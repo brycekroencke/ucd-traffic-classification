@@ -151,6 +151,8 @@ with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Relat
     y_train = f["y_train"][:]
     time_data = f["time"][:]
 
+
+print(time_data[0])
 X_train, y_train, time_data = sklearn.utils.shuffle(X_train, y_train, time_data, random_state = 0)
 X_valid = X_train[:50]
 y_valid = y_train[:50]
