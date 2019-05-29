@@ -251,9 +251,10 @@ start = 0
 for j in list(set(okaySfs)):
     for i in range(len(sortedSF)):
         if sortedSF[i][0] == j:
-            end = end + 1 
+            end = end + 1
     sortedSF[start:end] = Sort(sortedSF[start:end], 1)
     start = end
+
 
 print("-------------------------")
 print("-------------------------")
@@ -282,10 +283,11 @@ for i in list(set(okaySfs)):
         for j in listOfIds:
             #add sequence j to j + sizeOfbatch into array
             X_train_sub = []
+            time_sub = []
             for x in range(sizeOfbatch):
-                X_train_sub.append(dataTuple[j+x+start][5:])
-                y_train_sub = dataTuple[j+x+start][3]
-                time_sub = dataTuple[j+x+start][0]
+                X_train_sub.append(sortedSF[j+x+start][5:])
+                y_train_sub = sortedSF[j+x+start][3]
+                time_sub.append(sortedSF[j+x+start][1])
             X_train.append(X_train_sub)
             y_train.append(y_train_sub)
             time.append(time_sub)
@@ -295,10 +297,11 @@ for i in list(set(okaySfs)):
         for j in range(batchesPerSf):
             randomIndx = random.choice(listOfIds)
             X_train_sub = []
+            time_sub = []
             for x in range(sizeOfbatch):
-                X_train_sub.append(dataTuple[randomIndx+x+start][5:])
-                y_train_sub = dataTuple[randomIndx+x+start][3]
-                time_sub = dataTuple[randomIndx+x+start][0]
+                X_train_sub.append(sortedSF[randomIndx+x+start][5:])
+                y_train_sub = sortedSF[randomIndx+x+start][3]
+                time_sub.append(sortedSF[randomIndx+x+start][1])
 
             # print(str(randomIndx+start)+" -> "+str(randomIndx+sizeOfbatch+start))
             listOfIds.remove(randomIndx)

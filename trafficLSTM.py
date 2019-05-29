@@ -133,7 +133,7 @@ def get_model():
     x = TimeDistributed(Flatten())(x)
     x = TimeDistributed(Dense(num_classes))(x)
     cnn_out = TimeDistributed(Dense(1, name='cnn_out'))(x)
-    auxiliary_input = Input(shape = time_data.shape[1:], name='aux_input')
+    auxiliary_input = Input(shape = time_train.shape[1:], name='aux_input')
     x = keras.layers.concatenate([cnn_out, auxiliary_input])
     # model.add(TimeDistributed(Dense(num_classes)))
     # A LSTM will transform the vector sequence into a single vector,
@@ -190,13 +190,13 @@ with h5.File('/Users/brycekroencke/Documents/TrafficClassification/Project Relat
     y_train = f["y_train"][:]
     time_data = f["time"][:]
 
-X_train, y_train = sklearn.utils.shuffle(X_train, y_train, random_state = 0)
+#X_train, y_train = sklearn.utils.shuffle(X_train, y_train, random_state = 0)
 X_valid = X_train[:50]
 y_valid = y_train[:50]
 X_train = X_train[50:]
 y_train = y_train[50:]
-time_train = time_data[:50]
-time_valid = time_data[50:]
+time_train = time_data[50:]
+time_valid = time_data[:50]
 X_train = np.array(X_train)
 X_valid = np.array(X_valid)
 y_train = np.array(y_train)
@@ -209,6 +209,7 @@ time_train = np.expand_dims(time_train, axis=3)
 time_valid = np.expand_dims(time_valid, axis=3)
 print(X_train.shape)
 print(time_train.shape)
+print(time_train[0:3])
 model = get_model()
 model.load_weights('my_model_weights.h5', by_name=True)
 model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
