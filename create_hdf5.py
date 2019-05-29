@@ -28,7 +28,7 @@ network_files_pathway = "/Users/brycekroencke/Documents/TrafficClassification/fi
 #Pathway to the directory in which the new h5 file is to be stored
 directory_for_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files"
 #Name of newly created hdf5 file
-name_of_h5 = "trafficData5.hdf5"
+name_of_h5 = "trafficData_lstm.hdf5"
 
 
 """
@@ -135,7 +135,6 @@ def getFiles():
                                             if count <= numOfPackets:
                                                 count = count + 1
                                                 pktStr = line[3]
-
                                                 pktArr.append(pad_and_convert(pktStr[0:numOfBytes]))
                                                 numOfPacksRead = idx2
 
@@ -209,26 +208,24 @@ for i in range(numOfSf):
         time[1] = (float(time[1]) - float(startTime))
 
 
-# """
-# Seperated the larger data matrix into smaller matricies.
-# Metadata contains: time, class, subclass
-# sclabelList contains: subclass
-# clabelList contains: class
-# dataList contains: packet data
-# """
-# metaList = []
-# clabelList, sclabelList = [], []
-# dataList = []
-#
-#
-# for i in range(len(dataTuple)):
-#     metaList.append(dataTuple[i][0:4])
-#     sclabelList.append(dataTuple[i][4])
-#     clabelList.append(dataTuple[i][3])
-#     dataList.append(dataTuple[i][5:])
-#
-# for i in range(14):
-#     print(gClass(i),sclabelList.count(i))
+"""
+Seperated the larger data matrix into smaller matricies.
+Metadata contains: time, class, subclass
+sclabelList contains: subclass
+clabelList contains: class
+dataList contains: packet data
+"""
+metaList = []
+clabelList, sclabelList = [], []
+dataList = []
+
+
+for i in range(len(dataTuple)):
+    metaList.append(dataTuple[i][0:4])
+    sclabelList.append(dataTuple[i][4])
+    clabelList.append(dataTuple[i][3])
+    dataList.append(dataTuple[i][5:])
+
 
 
 
@@ -277,6 +274,7 @@ print("-------------------------")
 batchList = []
 X_train = []
 y_train = []
+y_train_sc = []
 time = []
 
 batchesPerSf = 5
@@ -298,25 +296,28 @@ for i in list(set(okaySfs)):
             for x in range(sizeOfbatch):
                 X_train_sub.append(sortedSF[j+x+start][5:])
                 y_train_sub = sortedSF[j+x+start][3]
+                y_train_sc_sub = sortedSF[j+x+start][4]
                 time_sub.append(sortedSF[j+x+start][1])
             X_train.append(X_train_sub)
             y_train.append(y_train_sub)
+            y_train_sc.append(y_train_sc_sub)
             time.append(time_sub)
 
             #print(str(j+start)+" -> "+str(j+sizeOfbatch+start))
     else:
         for j in range(batchesPerSf):
+            X_train_sub = []
+            time_sub = []
             for i in range(5):
-                #add sequence j to j + sizeOfbatch into array
-                X_train_sub = []
-                time_sub = []
-                for x in range(sizeOfbatch):
-                    X_train_sub.append(sortedSF[i+x+start][5:])
-                    y_train_sub = sortedSF[i+x+start][3]
-                    time_sub.append(sortedSF[i+x+start][1])
-                X_train.append(X_train_sub)
-                y_train.append(y_train_sub)
-                time.append(time_sub)
+                X_train_sub.append(sortedSF[i+start][5:])
+                y_train_sub = sortedSF[i+start][3]
+                y_train_sc_sub = sortedSF[i+start][4]
+                time_sub.append(sortedSF[i+start][1])
+
+            X_train.append(X_train_sub)
+            y_train.append(y_train_sub)
+            y_train_sc.append(y_train_sc_sub)
+            time.append(time_sub)
 
 
 
@@ -329,10 +330,10 @@ for i in list(set(okaySfs)):
             #     time_sub.append(sortedSF[randomIndx+x+start][1])
 
             # print(str(randomIndx+start)+" -> "+str(randomIndx+sizeOfbatch+start))
-            listOfIds.remove(randomIndx)
-            X_train.append(X_train_sub)
-            y_train.append(y_train_sub)
-            time.append(time_sub)
+            #listOfIds.remove(randomIndx)
+            # X_train.append(X_train_sub)
+            # y_train.append(y_train_sub)
+            # time.append(time_sub)
     start = end
 
 
@@ -366,24 +367,19 @@ os.chdir(directory_for_h5)
 f = h5.File(name_of_h5,'w')
 f.create_dataset("X_train", data=X_train)
 f.create_dataset("y_train", data=y_train)
+f.create_dataset("y_train_sub_class", data=y_train_sc)
 f.create_dataset("time", data=time)
 f.close()
 
 
-#
-# """
-# Creates a hdf5 file and 4 datasets that contain the entire datasets metadata,
-# subclass labels, class labels, and packet data.
-# """
-# os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
-# f = h5.File('trafficData4.hdf5','w')
-# f.create_dataset("wholeData", data=dataTuple)
-# f.create_dataset("data", data=dataList)
-# f.create_dataset("metadata", data=metaList)
-# f.create_dataset("subClassLabels", data=sclabelList)
-# f.create_dataset("classLabels", data=clabelList)
-# f.close()
-#
+
+os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
+f = h5.File('trafficData_cnn.hdf5','w')
+f.create_dataset("X_train", data=dataList)
+f.create_dataset("y_train", data=clabelList)
+f.create_dataset("y_train_sc", data=sclabelList)
+f.close()
+
 #
 # """
 # Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.
