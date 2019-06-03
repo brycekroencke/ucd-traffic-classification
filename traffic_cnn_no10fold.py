@@ -12,7 +12,7 @@ np.random.seed(1337) # for reproducibility
 import random
 random.seed( 3 ) # for reproducibility
 import pandas as pd
-import csv
+import csv 
 import keras
 from keras.models import Sequential, Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau

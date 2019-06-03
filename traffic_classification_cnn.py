@@ -29,6 +29,7 @@ pd.set_option('display.max_rows', None)  # or 1000
 pd.set_option('display.max_colwidth', -1)  # or 199
 
 
+path_to_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData_cnn.hdf5"
 
 #Network hyperparameters
 num_classes = 14
@@ -52,16 +53,16 @@ Loads datasets from the hdf5 file that were generated from toH5.py
 """
 def load_data_kfold():
     X_train, y_train, allClass, total = [], [], [], []
-    with h5.File('trafficData4.hdf5', 'r') as f:
+    with h5.File(path_to_h5, 'r') as f:
         if num_classes == 14:
             for i in range(10):
-                X_train.append(f[str(i)+"data"][:])
-                y_train.append(f[str(i)+"SClabel"][:])
+                X_train.append(f[str(i)+"_X_train"][:])
+                y_train.append(f[str(i)+"_y_train_sub"][:])
         if num_classes == 7:
             for i in range(10):
-                X_train.append(f[str(i)+"data"][:])
-                y_train.append(f[str(i)+"Clabel"][:])
-                allClass.append(f[str(i)+"SClabel"][:])
+                X_train.append(f[str(i)+"_X_train"][:])
+                y_train.append(f[str(i)+"_y_train"][:])
+                allClass.append(f[str(i)+"_y_train_sub"][:])
         if match == 1:
             ytemp, ytemp1 = [], []
             xtemp, xtemp1 = [], []
@@ -77,8 +78,6 @@ def load_data_kfold():
             X_train = xtemp1
             y_train = ytemp1
 
-        np.set_printoptions(threshold=np.nan)
-        print(X_train[0:3])
 
     return X_train, y_train
 
@@ -194,13 +193,10 @@ for j in range(10):
     """
     Training of the model.
     """
-    model = get_model()
-    model.load_weights("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/ucd-traffic-classification/final_model_fold0_weights.h5")
-    model.save_weights('my_model_weights.h5')
-    '''
+    model = get_model() 
+
     model.fit(X_train_cv, y_train_cv, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid_cv, y_valid_cv), shuffle = True, callbacks = callbacks)
     print(model.evaluate(X_valid_cv, y_valid_cv))
-    '''
 
     """
     Generates a confusion matrix for each fold of training. Helps understand networks predictive

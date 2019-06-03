@@ -307,34 +307,32 @@ for i in list(set(okaySfs)):
             #print(str(j+start)+" -> "+str(j+sizeOfbatch+start))
     else:
         for j in range(batchesPerSf):
+            # X_train_sub = []
+            # time_sub = []
+            # for i in range(5):
+            #     X_train_sub.append(sortedSF[i+start][5:])
+            #     y_train_sub = sortedSF[i+start][3]
+            #     y_train_sc_sub = sortedSF[i+start][4]
+            #     time_sub.append(sortedSF[i+start][1])
+            #
+            # X_train.append(X_train_sub)
+            # y_train.append(y_train_sub)
+            # y_train_sc.append(y_train_sc_sub)
+            # time.append(time_sub)
+            randomIndx = random.choice(listOfIds)
             X_train_sub = []
             time_sub = []
-            for i in range(5):
-                X_train_sub.append(sortedSF[i+start][5:])
-                y_train_sub = sortedSF[i+start][3]
-                y_train_sc_sub = sortedSF[i+start][4]
-                time_sub.append(sortedSF[i+start][1])
-
+            time_for_norm = sortedSF[randomIndx+start][1]
+            for x in range(sizeOfbatch):
+                X_train_sub.append(sortedSF[randomIndx+x+start][5:])
+                y_train_sub = sortedSF[randomIndx+x+start][3]
+                y_train_sc_sub = sortedSF[randomIndx+x+start][4]
+                time_sub.append(sortedSF[randomIndx+x+start][1] - time_for_norm)
+            listOfIds.remove(randomIndx)
             X_train.append(X_train_sub)
             y_train.append(y_train_sub)
             y_train_sc.append(y_train_sc_sub)
             time.append(time_sub)
-
-
-
-            # randomIndx = random.choice(listOfIds)
-            # X_train_sub = []
-            # time_sub = []
-            # for x in range(sizeOfbatch):
-            #     X_train_sub.append(sortedSF[randomIndx+x+start][5:])
-            #     y_train_sub = sortedSF[randomIndx+x+start][3]
-            #     time_sub.append(sortedSF[randomIndx+x+start][1])
-
-            # print(str(randomIndx+start)+" -> "+str(randomIndx+sizeOfbatch+start))
-            #listOfIds.remove(randomIndx)
-            # X_train.append(X_train_sub)
-            # y_train.append(y_train_sub)
-            # time.append(time_sub)
     start = end
 
 
@@ -363,6 +361,7 @@ time = np.array(time)
 print(X_train.shape)
 print(y_train.shape)
 print(time.shape)
+print(time[:3])
 
 os.chdir(directory_for_h5)
 f = h5.File(name_of_lstm_h5,'w')
@@ -371,58 +370,60 @@ f.create_dataset("y_train", data=y_train)
 f.create_dataset("y_train_sub_class", data=y_train_sc)
 f.create_dataset("time", data=time)
 f.close()
- 
 
 
+#
+# f = h5.File(name_of_cnn_h5,'w')
+# f.create_dataset("X_train", data=dataList)
+# f.create_dataset("y_train", data=clabelList)
+# f.create_dataset("y_train_sc", data=sclabelList)
+# f.close()
+
+
+"""
+Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.
+This process ensures that all superfiles are placed into the same fold.
+"""
+SFPercentOfTotalData = dict((x, round((numOfSfList.count(x)/len(numOfSfList)),5)) for x in set(numOfSfList))
+ranList = list(range(0,numOfSf))
+ArrayInTenths = []
+tempList = []
+perTotal = 0
+for i in range(len(ranList)):
+    value = random.choice(ranList)
+    ranList.remove(value)
+    perTotal = perTotal + SFPercentOfTotalData[value]
+    if perTotal < .10:
+        for x in dataTuple:
+            if x[0] == value:
+                tempList.append(x)
+    else:
+        print(perTotal)
+        ArrayInTenths.append(tempList)
+        perTotal = 0
+        tempList = []
+print(perTotal)
+ArrayInTenths.append(tempList)
+perTotal = 0
+tempList = []
+
+
+"""
+Adds the 10 fold cross validation data into the hdf5 file.
+"""
+os.chdir(directory_for_h5)
 f = h5.File(name_of_cnn_h5,'w')
 f.create_dataset("X_train", data=dataList)
 f.create_dataset("y_train", data=clabelList)
 f.create_dataset("y_train_sc", data=sclabelList)
+for i in range(10):
+    tempD = []
+    tempL1, tempL2 = [], []
+    for j in range(len(ArrayInTenths[i])):
+        tempD.append(ArrayInTenths[i][j][5:])
+        tempL2.append(ArrayInTenths[i][j][4])
+        tempL1.append(ArrayInTenths[i][j][3])
+    f.create_dataset(str(i)+"_X_train", data=tempD)
+    f.create_dataset(str(i)+"_y_train", data=tempL1)
+    f.create_dataset(str(i)+"_y_train_sub", data=tempL2)
 f.close()
-
-#
-# """
-# Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.
-# This process ensures that all superfiles are placed into the same fold.
-# """
-# SFPercentOfTotalData = dict((x, round((numOfSfList.count(x)/len(numOfSfList)),5)) for x in set(numOfSfList))
-# ranList = list(range(0,numOfSf))
-# ArrayInTenths = []
-# tempList = []
-# perTotal = 0
-# for i in range(len(ranList)):
-#     value = random.choice(ranList)
-#     ranList.remove(value)
-#     perTotal = perTotal + SFPercentOfTotalData[value]
-#     if perTotal < .10:
-#         for x in dataTuple:
-#             if x[0] == value:
-#                 tempList.append(x)
-#     else:
-#         print(perTotal)
-#         ArrayInTenths.append(tempList)
-#         perTotal = 0
-#         tempList = []
-# print(perTotal)
-# ArrayInTenths.append(tempList)
-# perTotal = 0
-# tempList = []
-#
-#
-# """
-# Adds the 10 fold cross validation data into the hdf5 file.
-# """
-# os.chdir("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files")
-#
-# f = h5.File('trafficData4.hdf5','w')
-# for i in range(10):
-#     tempD = []
-#     tempL1, tempL2 = [], []
-#     for j in range(len(ArrayInTenths[i])):
-#         tempD.append(ArrayInTenths[i][j][5:])
-#         tempL2.append(ArrayInTenths[i][j][4])
-#         tempL1.append(ArrayInTenths[i][j][3])
-#     f.create_dataset(str(i)+"data", data=tempD)
-#     f.create_dataset(str(i)+"Clabel", data=tempL1)
-#     f.create_dataset(str(i)+"SClabel", data=tempL2)
-# f.close()
