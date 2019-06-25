@@ -24,12 +24,12 @@ pktThreshold = 8
 """
 
 #Pathway to inside of directory containing the raw network data
-network_files_pathway = "/Users/brycekroencke/Documents/TrafficClassification/files/"
+network_files_pathway = "/Users/brycekroencke/Downloads/processed(all)"
 #Pathway to the directory in which the new h5 file is to be stored
 directory_for_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files"
 #Name of newly created hdf5 file
-name_of_lstm_h5 = "trafficData_lstm.hdf5"
-name_of_cnn_h5 = "trafficData_cnn.hdf5"
+name_of_lstm_h5 = "trafficData_large_lstm.hdf5"
+name_of_cnn_h5 = "trafficData_large_cnn.hdf5"
 
 
 """
@@ -40,26 +40,13 @@ name_of_cnn_h5 = "trafficData_cnn.hdf5"
 dataTuple = []
 labelArray = []
 
-"""
-    Assigns each class/subclass an integer label.
-"""
-def gNum(type):
-    # typeTuple = [("Google+",0),("GoogleEarth",1),("GoogleMap",2),("GoogleMusic",3),("GooglePlay",4),("Hangouts",5),("WebMail_Gmail",6),("YouTube",7),("Google_Common",8),("GoogleAnalytics",9),("GoogleSearch",10),("GoogleAdsense",11),("TCPConnect",12),("HTTP",13),("HTTPS",14)]
-    typeTuple = [("GoogleEarth",0),("GoogleMap",1),("GoogleMusic",2),("GooglePlay",3),("Hangouts",4),("WebMail_Gmail",5),("YouTube",6),("Google_Common",7),("GoogleAnalytics",8),("GoogleSearch",9),("GoogleAdsense",10),("TCPConnect",11),("HTTP",12),("HTTPS",13)]
-    dic = dict(typeTuple)
-    return dic[type]
 
-def gClass(type):
-    # typeTuple = [("Google+",0),("GoogleEarth",1),("GoogleMap",2),("GoogleMusic",3),("GooglePlay",4),("Hangouts",5),("WebMail_Gmail",6),("YouTube",7),("Google_Common",8),("GoogleAnalytics",9),("GoogleSearch",10),("GoogleAdsense",11),("TCPConnect",12),("HTTP",13),("HTTPS",14)]
-    typeTuple = [(0,"GoogleEarth"),(1,"GoogleMap"),(2,"GoogleMusic"),(3,"GooglePlay"),(4,"Hangouts"),(5,"WebMail_Gmail"),(6,"YouTube"),(7,"Google_Common"),(8,"GoogleAnalytics"),(9,"GoogleSearch"),(10,"GoogleAdsense"),(11,"TCPConnect"),(12,"HTTP"),(13, "HTTPS")]
-    dic = dict(typeTuple)
-    return dic[type]
 
 """
     Assigns each device type a interger label. (Android/IOS to int)
 """
 def gDev(type):
-    typeTuple = [("Android",0),("IOS",1)]
+    typeTuple = [("Android",0),("bulid",0), ("Aphone", 1), ("IOS",1)]
     dic = dict(typeTuple)
     return dic[type]
 
@@ -89,6 +76,18 @@ def Sort(sub_li, el):
 
 
 
+
+def label_to_int(label):
+    if label not in labelArray:
+        labelArray.append(label)
+    return labelArray.index(label)
+
+
+def int_to_label(int):
+    return labelArray[int]
+
+
+
 """
     Reads in a directory of files and extracts the needed network data and labels.
     The data is added into one large matrix that is then further processed later
@@ -97,13 +96,14 @@ def Sort(sub_li, el):
 def getFiles():
     superFileNum = 0
     prevIDs = []
+    csv.field_size_limit(100000000)
     os.chdir(network_files_pathway)
     for directories in os.listdir(os.getcwd()):
-        if not directories.startswith('.') and directories != "Google+":
+        if not directories.startswith('.') and directories != "QIYI":
             dir = os.path.join(network_files_pathway, directories)
             os.chdir(dir)
             for idx, subdirectories in enumerate(os.listdir(os.getcwd())):
-                if not subdirectories.startswith('.') and subdirectories != "Google+":
+                if not subdirectories.startswith('.') and subdirectories != "QIYI":
                     subdir = os.path.join(dir, subdirectories)
                     subdirSplit = subdirectories.split("_")
                     deviceType = subdirSplit[1]
@@ -118,51 +118,48 @@ def getFiles():
                                     fileUniqueID = (fileWithClassesRemoved.split("_", 1)[1]).rsplit(".", 3)[0]
                                     splitFilename = filename.split("-")
                                     underscoreSplitFilename = filename.split("_")
-                                    fileClass = splitFilename[0]
-                                    fileSubclass = splitFilename[1]
+                                    fileClass = splitFilename[1]
+                                    fileSubclass = splitFilename[2]
                                     dotSplitFilename = (underscoreSplitFilename[6]).split(".")
                                     fileFlowstate = filename[-15]
-                                    okClasses = ['GoogleEarth', 'GoogleMap', 'WebMail_Gmail', 'Hangouts', 'GooglePlay', 'YouTube', 'GoogleMusic']
-                                    okSubclasses = ['HTTP', 'GoogleEarth', 'GoogleMap', 'Google_Common', 'GoogleSearch', 'GoogleAnalytics', 'TCPConnect', 'HTTPS', 'WebMail_Gmail', 'Hangouts', 'GooglePlay', 'YouTube', 'GoogleMusic', 'GoogleAdsense']
-                                    if fileClass in okClasses and fileSubclass in okSubclasses:
-                                        count = 0
-                                        startTime = 0
-                                        pktStr = ""
-                                        totalPktStr = ""
-                                        numOfPacksRead = 0
-                                        maxPacks = 0
-                                        totalDurrationOfFlow = 0
-                                        totalBytesTransfered = 0
-                                        for idx2, line in enumerate(csv.reader(tsv, dialect="excel-tab")):
-                                            if line[0] == -1
-                                                totalDurrationOfFlow = line[2]
-                                                totalBytesTransfered = line[-1]
+                                    count = 0
+                                    startTime = 0
+                                    pktStr = ""
+                                    totalPktStr = ""
+                                    numOfPacksRead = 0
+                                    maxPacks = 0
+                                    totalDurrationOfFlow = 0
+                                    totalBytesTransfered = 0
+                                    for idx2, line in enumerate(csv.reader(tsv, dialect="excel-tab")):
+                                        if line[0] == -1:
+                                            totalDurrationOfFlow = line[2]
+                                            totalBytesTransfered = line[-1]
+                                            break
+                                        else:
                                             if count == 0:
                                                 startTime = line[1]
                                             if count <= numOfPackets:
                                                 count = count + 1
                                                 pktStr = line[3]
+                                                print(fileClass, fileSubclass, pktStr[0:numOfBytes])
                                                 pktArr.append(pad_and_convert(pktStr[0:numOfBytes]))
                                                 numOfPacksRead = idx2
-
                                             maxPacks = idx2
-                                        if numOfPacksRead < numOfPackets:
-                                            morePkts = numOfPackets-numOfPacksRead
-                                            for i in range(morePkts):
-                                                pktArr.append(pad_and_convert(""))
+                                    if numOfPacksRead < numOfPackets:
+                                        morePkts = numOfPackets-numOfPacksRead
+                                        for i in range(morePkts):
+                                            pktArr.append(pad_and_convert(""))
 
-                                        if maxPacks >= pktThreshold:
-                                            if fileUniqueID not in prevIDs:
-                                                prevIDs.append(fileUniqueID)
-                                            for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
-                                                superFileNum = i
-                                            flat_list = [item for sublist in pktArr for item in sublist]
-                                            newList = [superFileNum, startTime, gDev(deviceType), gNum(directories), gNum(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
-                                            newList.extend(flat_list)
-                                            dataTuple.append(newList)
-
-
-
+                                    if maxPacks >= pktThreshold:
+                                        print("here")
+                                        if fileUniqueID not in prevIDs:
+                                            prevIDs.append(fileUniqueID)
+                                        for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
+                                            superFileNum = i
+                                        flat_list = [item for sublist in pktArr for item in sublist]
+                                        newList = [superFileNum, startTime, gDev(deviceType), label_to_int(directories), label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
+                                        newList.extend(flat_list)
+                                        dataTuple.append(newList)
 
 
 """
@@ -171,25 +168,13 @@ def getFiles():
     DeviceType:
     0 -> Android
     1 -> IOS
-
-    Class/Subclass:
-    0 -> GoogleEarth
-    1 -> GoogleMap
-    2 -> GoogleMusic
-    3 -> GooglePlay
-    4 -> Hangouts
-    5 -> WebMail_Gmail
-    6 -> YouTube
-    7 -> Google_Common
-    8 -> GoogleAnalytics
-    9 -> GoogleSearch
-    10 -> GoogleAdsense
-    11 -> TCPConnect
-    12 -> HTTP
-    13 -> HTTPS
 """
 
+
+
 getFiles()
+
+print(dataTuple)
 
 """
 Gets the start time of each flow and subtracts it from the rest of the files

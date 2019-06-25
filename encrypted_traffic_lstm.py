@@ -33,8 +33,7 @@ pd.set_option('display.max_colwidth', -1)  # or 199
 
 
 
-
-
+/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/final_model_fold1_weights.h5
 #Network hyperparameters
 epochs = 4
 learningRate = .0001
