@@ -3,14 +3,12 @@
     original directory of network packet data.
 """
 
-
 import os
 import sklearn
 import h5py as h5
 import numpy as np
-np.random.seed(1337) # for reproducibility
+
 import random
-random.seed( 3 ) # for reproducibility
 import pandas as pd
 import csv
 import keras
@@ -22,29 +20,37 @@ from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activa
 from keras.utils import to_categorical
 from random import shuffle
 
+"""
+************************************
+Variables to change prior to running
+************************************
+"""
+#Path to hdf5 file containing dataset
+path_to_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData_cnn.hdf5"
+
+#Network hyperparameters
+num_classes = 14
+epochs = 15
+learningRate = .005
+batch_size = 64
+
+# match = 1 -> Class and Subclass must match
+# match = 0 -> Class and Subclasses dont need to match
+match = 0
+"""
+************************************
+"""
+
+#Setting seeds for reproducibility
+np.random.seed(1337)
+random.seed(3)
 
 #Increases the print size of pandas output
 pd.set_option('display.max_columns', None)  # or 1000
 pd.set_option('display.max_rows', None)  # or 1000
 pd.set_option('display.max_colwidth', -1)  # or 199
 
-
-path_to_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/trafficData_cnn.hdf5"
-
-#Network hyperparameters
-num_classes = 14
-epochs = 15
-learningRate = .005  #.005
-batch_size = 64    #64
-
-"""
-Switch uses to determine if the network should be trained on all data, or only data where
-the class and subclss labels match.
-1 -> Class and Subclass match
-0 -> Class and Subclass do not have to match
-"""
-match = 0
-
+#Globals
 nNumArr = []
 
 
@@ -193,7 +199,7 @@ for j in range(10):
     """
     Training of the model.
     """
-    model = get_model() 
+    model = get_model()
 
     model.fit(X_train_cv, y_train_cv, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid_cv, y_valid_cv), shuffle = True, callbacks = callbacks)
     print(model.evaluate(X_valid_cv, y_valid_cv))

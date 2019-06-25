@@ -3,67 +3,53 @@
     original directory of network packet data.
 """
 
-
 import os
+import csv
+import keras
+import random
 import sklearn
 import h5py as h5
 import numpy as np
-np.random.seed(1337) # for reproducibility
-import random
-random.seed( 3 ) # for reproducibility
 import pandas as pd
-import csv
-import keras
-from keras.models import Sequential, Model
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.utils import np_utils
-from keras.layers.convolutional import Conv1D, MaxPooling1D
-from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activation, TimeDistributed, LSTM, Input
-from keras.utils import to_categorical
 from random import shuffle
 from collections import Counter
+from keras.utils import np_utils
+from keras.utils import to_categorical
+from keras.models import Sequential, Model
 from sklearn.metrics import confusion_matrix
+from keras.layers.convolutional import Conv1D, MaxPooling1D
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from keras.layers import Dense, Flatten, GlobalAveragePooling1D, Dropout, Activation, TimeDistributed, LSTM, Input
+
+"""
+************************************
+Variables to change prior to running
+************************************
+"""
+# time_concat = 1 -> run with time concatenation
+# time_concat = 0 -> run without time concatenation
+time_concat = 1
+
+num_classes = 7
+sfCutOff = 10 #number of timestamps per TimeDistribution
+
+#Network hyperparameters
+epochs = 4
+learningRate = .0001
+batch_size = 10
+"""
+************************************
+"""
 
 
+# set seeds for reproducibility
+random.seed(3)
+np.random.seed(1337)
 
 #Increases the print size of pandas output
 pd.set_option('display.max_columns', None)  # or 1000
 pd.set_option('display.max_rows', None)  # or 1000
 pd.set_option('display.max_colwidth', -1)  # or 199
-
-
-
-/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/final_model_fold1_weights.h5
-#Network hyperparameters
-epochs = 4
-learningRate = .0001
-batch_size = 10
-num_classes = 7
-
-
-sfCutOff = 10 #number of timestamps per TimeDistribution
-
-"""
-Sorts a matrix by a given element
-"""
-def Sort(sub_li, el):
-    l = len(sub_li)
-    for i in range(0, l):
-        for j in range(0, l-i-1):
-            if (sub_li[j][el] > sub_li[j + 1][el]):
-                tempo = sub_li[j]
-                sub_li[j]= sub_li[j + 1]
-                sub_li[j + 1]= tempo
-    return sub_li
-
-
-"""
-Go from class label to an integer value.
-"""
-def gNum(type):
-    typeTuple = [("GoogleEarth",0),("GoogleMap",1),("GoogleMusic",2),("GooglePlay",3),("Hangouts",4),("WebMail_Gmail",5),("YouTube",6),("Google_Common",7),("GoogleAnalytics",8),("GoogleSearch",9),("GoogleAdsense",10),("TCPConnect",11),("HTTP",12),("HTTPS",13)]
-    dic = dict(typeTuple)
-    return dic[type]
 
 """
 Defines the 1D DCNN model using TimeDistributed
@@ -126,10 +112,6 @@ def run_with_time():
     benchmark_model_name = 'benchmark-model.h5'
     model.save(benchmark_model_name)
     print(model.evaluate([X_valid, time_valid], [y_valid, y_valid]))
-    # y_pred = model.predict([X_valid, time_valid])
-    # y_pred = (y_pred > 0.5)
-    # cm = confusion_matrix(y_valid, y_pred)
-    # print(cm)
 
 def run_without_time():
     print("==========================================")
@@ -179,7 +161,7 @@ time_valid = np.expand_dims(time_valid, axis=3)
 print(X_train.shape)
 print(time_train.shape)
 
-
-#Choose if you want to run the model with or without time concatenation
-#run_without_time()
-run_with_time()
+if time_concat = 1:
+    run_with_time()
+else:
+    run_without_time()

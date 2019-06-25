@@ -12,7 +12,7 @@ np.random.seed(1337) # for reproducibility
 import random
 random.seed( 3 ) # for reproducibility
 import pandas as pd
-import csv 
+import csv
 import keras
 from keras.models import Sequential, Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
@@ -101,15 +101,6 @@ def get_callbacks(name_weights, patience_lr):
     early_stop = keras.callbacks.EarlyStopping(monitor='acc', patience=1)
     return [mcp_save, early_stop]
 
-"""
-Go from class label to an integer value.
-"""
-
-def gNum(type):
-    # typeTuple = [("Google+",0),("GoogleEarth",1),("GoogleMap",2),("GoogleMusic",3),("GooglePlay",4),("Hangouts",5),("WebMail_Gmail",6),("YouTube",7),("Google_Common",8),("GoogleAnalytics",9),("GoogleSearch",10),("GoogleAdsense",11),("TCPConnect",12),("HTTP",13),("HTTPS",14)]
-    typeTuple = [("GoogleEarth",0),("GoogleMap",1),("GoogleMusic",2),("GooglePlay",3),("Hangouts",4),("WebMail_Gmail",5),("YouTube",6),("Google_Common",7),("GoogleAnalytics",8),("GoogleSearch",9),("GoogleAdsense",10),("TCPConnect",11),("HTTP",12),("HTTPS",13)]
-    dic = dict(typeTuple)
-    return dic[type]
 
 
 X_train, y_train = load_data_kfold()

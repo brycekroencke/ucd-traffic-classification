@@ -160,6 +160,7 @@ def getFiles():
                                         newList = [superFileNum, startTime, gDev(deviceType), label_to_int(directories), label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
                                         newList.extend(flat_list)
                                         dataTuple.append(newList)
+        break
 
 
 """
@@ -228,7 +229,7 @@ sfCutOff = 10 #number of timestamps per TimeDistribution
 
 #FIND TOTAL NUMBER OF SUPERFILES AND CONSTRUCT A DICT
 totalSf = []
-for i in range(29992):
+for i in range(len(dataTuple)):
     totalSf.append(int(dataTuple[i][0]))
 sfDic = Counter(totalSf)
 okaySfs = []
@@ -241,7 +242,7 @@ print(len(set(okaySfs)))
 
 #TRIM THE SUPERFILES THAT ARE UNDER THE SF CUTOFF NUMBER
 overCutoff = []
-for i in range(29992):
+for i in range(len(dataTuple)):
     if dataTuple[i][0] in okaySfs:
          overCutoff.append(dataTuple[i])
 
@@ -364,59 +365,59 @@ f.create_dataset("y_train_sub_class", data=y_train_sc)
 f.create_dataset("time", data=time)
 f.close()
 
-
 #
+# #
+# # f = h5.File(name_of_cnn_h5,'w')
+# # f.create_dataset("X_train", data=dataList)
+# # f.create_dataset("y_train", data=clabelList)
+# # f.create_dataset("y_train_sc", data=sclabelList)
+# # f.close()
+#
+#
+# """
+# Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.
+# This process ensures that all superfiles are placed into the same fold.
+# """
+# SFPercentOfTotalData = dict((x, round((numOfSfList.count(x)/len(numOfSfList)),5)) for x in set(numOfSfList))
+# ranList = list(range(0,numOfSf))
+# ArrayInTenths = []
+# tempList = []
+# perTotal = 0
+# for i in range(len(ranList)):
+#     value = random.choice(ranList)
+#     ranList.remove(value)
+#     perTotal = perTotal + SFPercentOfTotalData[value]
+#     if perTotal < .10:
+#         for x in dataTuple:
+#             if x[0] == value:
+#                 tempList.append(x)
+#     else:
+#         print(perTotal)
+#         ArrayInTenths.append(tempList)
+#         perTotal = 0
+#         tempList = []
+# print(perTotal)
+# ArrayInTenths.append(tempList)
+# perTotal = 0
+# tempList = []
+#
+#
+# """
+# Adds the 10 fold cross validation data into the hdf5 file.
+# """
+# os.chdir(directory_for_h5)
 # f = h5.File(name_of_cnn_h5,'w')
 # f.create_dataset("X_train", data=dataList)
 # f.create_dataset("y_train", data=clabelList)
 # f.create_dataset("y_train_sc", data=sclabelList)
+# for i in range(10):
+#     tempD = []
+#     tempL1, tempL2 = [], []
+#     for j in range(len(ArrayInTenths[i])):
+#         tempD.append(ArrayInTenths[i][j][5:])
+#         tempL2.append(ArrayInTenths[i][j][4])
+#         tempL1.append(ArrayInTenths[i][j][3])
+#     f.create_dataset(str(i)+"_X_train", data=tempD)
+#     f.create_dataset(str(i)+"_y_train", data=tempL1)
+#     f.create_dataset(str(i)+"_y_train_sub", data=tempL2)
 # f.close()
-
-
-"""
-Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.
-This process ensures that all superfiles are placed into the same fold.
-"""
-SFPercentOfTotalData = dict((x, round((numOfSfList.count(x)/len(numOfSfList)),5)) for x in set(numOfSfList))
-ranList = list(range(0,numOfSf))
-ArrayInTenths = []
-tempList = []
-perTotal = 0
-for i in range(len(ranList)):
-    value = random.choice(ranList)
-    ranList.remove(value)
-    perTotal = perTotal + SFPercentOfTotalData[value]
-    if perTotal < .10:
-        for x in dataTuple:
-            if x[0] == value:
-                tempList.append(x)
-    else:
-        print(perTotal)
-        ArrayInTenths.append(tempList)
-        perTotal = 0
-        tempList = []
-print(perTotal)
-ArrayInTenths.append(tempList)
-perTotal = 0
-tempList = []
-
-
-"""
-Adds the 10 fold cross validation data into the hdf5 file.
-"""
-os.chdir(directory_for_h5)
-f = h5.File(name_of_cnn_h5,'w')
-f.create_dataset("X_train", data=dataList)
-f.create_dataset("y_train", data=clabelList)
-f.create_dataset("y_train_sc", data=sclabelList)
-for i in range(10):
-    tempD = []
-    tempL1, tempL2 = [], []
-    for j in range(len(ArrayInTenths[i])):
-        tempD.append(ArrayInTenths[i][j][5:])
-        tempL2.append(ArrayInTenths[i][j][4])
-        tempL1.append(ArrayInTenths[i][j][3])
-    f.create_dataset(str(i)+"_X_train", data=tempD)
-    f.create_dataset(str(i)+"_y_train", data=tempL1)
-    f.create_dataset(str(i)+"_y_train_sub", data=tempL2)
-f.close()
