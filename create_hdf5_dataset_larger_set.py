@@ -27,6 +27,7 @@ pktThreshold = 8
 network_files_pathway = "/Users/brycekroencke/Downloads/processed(all)"
 #Pathway to the directory in which the new h5 file is to be stored
 directory_for_h5 = "/Users/brycekroencke/Documents/TrafficClassification/Project Related Files"
+
 #Name of newly created hdf5 file
 name_of_lstm_h5 = "trafficData_large_lstm.hdf5"
 name_of_cnn_h5 = "trafficData_large_cnn.hdf5"
@@ -38,7 +39,8 @@ name_of_cnn_h5 = "trafficData_large_cnn.hdf5"
 
 #Global list used to create dataset
 dataTuple = []
-labelArray = []
+class_label_array = []
+subclass_label_array = []
 
 
 
@@ -76,11 +78,16 @@ def Sort(sub_li, el):
 
 
 
+def class_label_to_int(label):
+    if label not in class_label_array:
+        class_label_array.append(label)
+    return class_label_array.index(label)
 
-def label_to_int(label):
-    if label not in labelArray:
-        labelArray.append(label)
-    return labelArray.index(label)
+
+def subclass_label_to_int(label):
+    if label not in subclass_label_array:
+        subclass_label_array.append(label)
+    return subclass_label_array.index(label)
 
 
 def int_to_label(int):
@@ -101,6 +108,7 @@ def getFiles():
     for directories in os.listdir(os.getcwd()):
         if not directories.startswith('.') and directories != "QIYI":
             dir = os.path.join(network_files_pathway, directories)
+            print(directories)
             os.chdir(dir)
             for idx, subdirectories in enumerate(os.listdir(os.getcwd())):
                 if not subdirectories.startswith('.') and subdirectories != "QIYI":
@@ -108,7 +116,9 @@ def getFiles():
                     subdirSplit = subdirectories.split("_")
                     deviceType = subdirSplit[1]
                     os.chdir(subdir)
-                    for filename in os.listdir(subdir):
+                    for idx, filename in enumerate(os.listdir(subdir)):
+                    #if idx < 40:
+                    #for filename in os.listdir(subdir):
                         if not filename.startswith('.'):
                             pktArr = []
                             if os.path.isfile:
@@ -151,17 +161,17 @@ def getFiles():
                                             pktArr.append(pad_and_convert(""))
 
                                     if maxPacks >= pktThreshold:
-                                        print("here")
+                                        #print("here")
                                         if fileUniqueID not in prevIDs:
                                             prevIDs.append(fileUniqueID)
                                         for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
                                             superFileNum = i
                                         flat_list = [item for sublist in pktArr for item in sublist]
-                                        newList = [superFileNum, startTime, gDev(deviceType), label_to_int(directories), label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
+                                        newList = [superFileNum, startTime, gDev(deviceType), class_label_to_int(directories), subclass_label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
                                         newList.extend(flat_list)
                                         dataTuple.append(newList)
-        break
-
+                    #else:
+                    #    break
 
 """
     We have a list of list. Each list within the list represents a file.
@@ -174,9 +184,6 @@ def getFiles():
 
 
 getFiles()
-
-print(dataTuple)
-
 """
 Gets the start time of each flow and subtracts it from the rest of the files
 within the flow. The data tuple is updated to contain the relative start times.
@@ -187,9 +194,6 @@ for tuple in dataTuple:
         numOfSf = tuple[0]
 
 numOfSf = numOfSf + 1
-print(numOfSf)
-
-
 
 numOfSfList = []
 for i in range(numOfSf):
@@ -202,7 +206,6 @@ for i in range(numOfSf):
     for time in tempList:
         time[1] = (float(time[1]) - float(startTime))
 
-
 """
 Seperated the larger data matrix into smaller matricies.
 Metadata contains: time, class, subclass
@@ -214,18 +217,13 @@ metaList = []
 clabelList, sclabelList = [], []
 dataList = []
 
-
 for i in range(len(dataTuple)):
     metaList.append(dataTuple[i][0:4])
     sclabelList.append(dataTuple[i][4])
     clabelList.append(dataTuple[i][3])
     dataList.append(dataTuple[i][5:])
 
-
-
-
 sfCutOff = 10 #number of timestamps per TimeDistribution
-
 
 #FIND TOTAL NUMBER OF SUPERFILES AND CONSTRUCT A DICT
 totalSf = []
@@ -352,10 +350,6 @@ print("-------------------------")
 y_train = np.array(y_train)
 X_train = np.array(X_train)
 time = np.array(time)
-print(X_train.shape)
-print(y_train.shape)
-print(time.shape)
-print(time[:3])
 
 os.chdir(directory_for_h5)
 f = h5.File(name_of_lstm_h5,'w')
@@ -363,16 +357,22 @@ f.create_dataset("X_train", data=X_train)
 f.create_dataset("y_train", data=y_train)
 f.create_dataset("y_train_sub_class", data=y_train_sc)
 f.create_dataset("time", data=time)
+asciiList = [n.encode("ascii", "ignore") for n in class_label_array]
+f.create_dataset('class_strings', (len(asciiList),1),'S10', asciiList)
+asciiList = [n.encode("ascii", "ignore") for n in subclass_label_array]
+f.create_dataset('subclass_strings', (len(asciiList),1),'S10', asciiList)
 f.close()
 
-#
-# #
-# # f = h5.File(name_of_cnn_h5,'w')
-# # f.create_dataset("X_train", data=dataList)
-# # f.create_dataset("y_train", data=clabelList)
-# # f.create_dataset("y_train_sc", data=sclabelList)
-# # f.close()
-#
+f = h5.File(name_of_cnn_h5,'w')
+f.create_dataset("X_train", data=dataList)
+f.create_dataset("y_train", data=clabelList)
+f.create_dataset("y_train_sc", data=sclabelList)
+asciiList = [n.encode("ascii", "ignore") for n in class_label_array]
+f.create_dataset('class_strings', (len(asciiList),1),'S10', asciiList)
+asciiList = [n.encode("ascii", "ignore") for n in subclass_label_array]
+f.create_dataset('subclass_strings', (len(asciiList),1),'S10', asciiList)
+f.close()
+
 #
 # """
 # Preprocessing step that splits the dataset into 10 ~equal sets for 10 fold cross validation.

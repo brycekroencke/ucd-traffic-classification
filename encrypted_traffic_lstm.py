@@ -2,7 +2,6 @@
     This program reads a preexisting hdf5 file containing information from the
     original directory of network packet data.
 """
-
 import os
 import csv
 import keras
