@@ -152,7 +152,7 @@ Training of the model.
 """
 model = get_model()
 #model.load_weights("/Users/brycekroencke/Documents/TrafficClassification/Project Related Files/ucd-traffic-classification/final_model_fold0_weights.h5")
-# model.save_weights('test_weights.h5')
+model.save_weights('larger_set_cnn_weights.h5')
 
 model.fit(X_train_cv, y_train_cv, verbose=1, epochs=epochs, batch_size=batch_size, validation_data=(X_valid_cv, y_valid_cv), shuffle = True, callbacks = callbacks)
 print(model.evaluate(X_valid_cv, y_valid_cv))
@@ -165,15 +165,6 @@ y_pred = model.predict(X_valid_cv)
 y_pred = np.argmax(y_pred, axis=1)
 y_valid_cv = np.argmax(y_valid_cv, axis=1)
 total = 0
-# for i in range(len(y_pred)):
-#     pred_int = int(y_pred[i])
-#     act_int = int(y_valid_cv[i])
-#     if act_int == pred_int:
-#         total = total + 1
-#         print(int_to_class[act_int], "        ", int_to_class[pred_int], "TRUE    *******")
-#     else:
-#         print(int_to_class[act_int], "        ", int_to_class[pred_int], "FALSE")
-
 
 predicted_class = []
 for i in y_pred:
@@ -189,6 +180,7 @@ cm = confusion_matrix(actual_class, predicted_class, int_to_class)
 
 
 print(cm)
+plt.rcParams.update({'font.size': 5})
 fig = plt.figure()
 ax = fig.add_subplot(111)
 cax = ax.matshow(cm)
@@ -200,6 +192,8 @@ ax.set_xticklabels([''] + int_to_class)
 ax.set_yticklabels([''] + int_to_class)
 plt.xlabel('Predicted')
 plt.ylabel('True')
+plt.savefig('CM.png')
+plt.savefig('CM.pdf')
 plt.show()
 # print("\n\n")
 # print(pd.crosstab(y_valid_cv, y_pred, rownames=['True'], colnames=['Predicted'], margins=True, normalize = 'columns', dropna = False))

@@ -117,7 +117,7 @@ def run_without_time():
     print("RUNNING WITHOUT TIME DATA")
     print("==========================================")
     model = get_model_without_time()
-    model.load_weights('my_model_weights.h5', by_name=True)
+    model.load_weights('weights_large_cnn.h5', by_name=True)
     model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose = 1)
     print(model.summary())
@@ -160,7 +160,7 @@ time_valid = np.expand_dims(time_valid, axis=3)
 print(X_train.shape)
 print(time_train.shape)
 
-if time_concat = 1:
+if time_concat == 1:
     run_with_time()
 else:
     run_without_time()

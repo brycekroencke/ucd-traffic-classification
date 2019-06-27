@@ -117,61 +117,61 @@ def getFiles():
                     deviceType = subdirSplit[1]
                     os.chdir(subdir)
                     for idx, filename in enumerate(os.listdir(subdir)):
-                    #if idx < 40:
+                        if idx < 90:
                     #for filename in os.listdir(subdir):
-                        if not filename.startswith('.'):
-                            pktArr = []
-                            if os.path.isfile:
-                                file = (os.path.join(subdir, filename))
-                                with open(file) as tsv:
-                                    fileWithClassesRemoved = filename.split("-", 2)[2]
-                                    fileUniqueID = (fileWithClassesRemoved.split("_", 1)[1]).rsplit(".", 3)[0]
-                                    splitFilename = filename.split("-")
-                                    underscoreSplitFilename = filename.split("_")
-                                    fileClass = splitFilename[1]
-                                    fileSubclass = splitFilename[2]
-                                    dotSplitFilename = (underscoreSplitFilename[6]).split(".")
-                                    fileFlowstate = filename[-15]
-                                    count = 0
-                                    startTime = 0
-                                    pktStr = ""
-                                    totalPktStr = ""
-                                    numOfPacksRead = 0
-                                    maxPacks = 0
-                                    totalDurrationOfFlow = 0
-                                    totalBytesTransfered = 0
-                                    for idx2, line in enumerate(csv.reader(tsv, dialect="excel-tab")):
-                                        if line[0] == -1:
-                                            totalDurrationOfFlow = line[2]
-                                            totalBytesTransfered = line[-1]
-                                            break
-                                        else:
-                                            if count == 0:
-                                                startTime = line[1]
-                                            if count <= numOfPackets:
-                                                count = count + 1
-                                                pktStr = line[3]
-                                                print(fileClass, fileSubclass, pktStr[0:numOfBytes])
-                                                pktArr.append(pad_and_convert(pktStr[0:numOfBytes]))
-                                                numOfPacksRead = idx2
-                                            maxPacks = idx2
-                                    if numOfPacksRead < numOfPackets:
-                                        morePkts = numOfPackets-numOfPacksRead
-                                        for i in range(morePkts):
-                                            pktArr.append(pad_and_convert(""))
+                            if not filename.startswith('.'):
+                                pktArr = []
+                                if os.path.isfile:
+                                    file = (os.path.join(subdir, filename))
+                                    with open(file) as tsv:
+                                        fileWithClassesRemoved = filename.split("-", 2)[2]
+                                        fileUniqueID = (fileWithClassesRemoved.split("_", 1)[1]).rsplit(".", 3)[0]
+                                        splitFilename = filename.split("-")
+                                        underscoreSplitFilename = filename.split("_")
+                                        fileClass = splitFilename[1]
+                                        fileSubclass = splitFilename[2]
+                                        dotSplitFilename = (underscoreSplitFilename[6]).split(".")
+                                        fileFlowstate = filename[-15]
+                                        count = 0
+                                        startTime = 0
+                                        pktStr = ""
+                                        totalPktStr = ""
+                                        numOfPacksRead = 0
+                                        maxPacks = 0
+                                        totalDurrationOfFlow = 0
+                                        totalBytesTransfered = 0
+                                        for idx2, line in enumerate(csv.reader(tsv, dialect="excel-tab")):
+                                            if line[0] == -1:
+                                                totalDurrationOfFlow = line[2]
+                                                totalBytesTransfered = line[-1]
+                                                break
+                                            else:
+                                                if count == 0:
+                                                    startTime = line[1]
+                                                if count <= numOfPackets:
+                                                    count = count + 1
+                                                    pktStr = line[3]
+                                                    print(fileClass, fileSubclass, pktStr[0:numOfBytes])
+                                                    pktArr.append(pad_and_convert(pktStr[0:numOfBytes]))
+                                                    numOfPacksRead = idx2
+                                                maxPacks = idx2
+                                        if numOfPacksRead < numOfPackets:
+                                            morePkts = numOfPackets-numOfPacksRead
+                                            for i in range(morePkts):
+                                                pktArr.append(pad_and_convert(""))
 
-                                    if maxPacks >= pktThreshold:
-                                        #print("here")
-                                        if fileUniqueID not in prevIDs:
-                                            prevIDs.append(fileUniqueID)
-                                        for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
-                                            superFileNum = i
-                                        flat_list = [item for sublist in pktArr for item in sublist]
-                                        newList = [superFileNum, startTime, gDev(deviceType), class_label_to_int(directories), subclass_label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
-                                        newList.extend(flat_list)
-                                        dataTuple.append(newList)
-                    #else:
-                    #    break
+                                        if maxPacks >= pktThreshold:
+                                            #print("here")
+                                            if fileUniqueID not in prevIDs:
+                                                prevIDs.append(fileUniqueID)
+                                            for i in [i for i,x in enumerate(prevIDs) if x == fileUniqueID]:
+                                                superFileNum = i
+                                            flat_list = [item for sublist in pktArr for item in sublist]
+                                            newList = [superFileNum, startTime, gDev(deviceType), class_label_to_int(directories), subclass_label_to_int(fileSubclass), totalDurrationOfFlow, totalBytesTransfered]
+                                            newList.extend(flat_list)
+                                            dataTuple.append(newList)
+                        else:
+                           break
 
 """
     We have a list of list. Each list within the list represents a file.
